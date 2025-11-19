@@ -6,10 +6,12 @@
     
     handleLocationChange : function(component, event, helper) {
         // Get the location data from the LWC event
-        var detail = event.getParam('detail');
+        // For LWC events, access detail directly from the event object
+        var detail = event.detail || event.getParam('detail');
+        console.log("Aura handleLocationChange - raw event:", event);
         console.log("Aura handleLocationChange - detail:", detail);
         
-        if (detail) {
+        if (detail && detail.latitude !== undefined && detail.longitude !== undefined) {
             component.set("v.latitude", detail.latitude);
             component.set("v.longitude", detail.longitude);
             
@@ -30,7 +32,7 @@
                 console.error("window.updateLocationFromAura function not found!");
             }
         } else {
-            console.error("No detail in locationchange event");
+            console.error("No detail in locationchange event. Event object:", event);
         }
     }
 })
