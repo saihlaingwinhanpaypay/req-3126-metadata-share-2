@@ -757,11 +757,24 @@
                                             
                                             // Initialize Leaflet Map component
                                             $Lightning.use("c:mpMapPickerApp", function() {
+                                                // Get latitude and longitude from Salesforce fields
+                                                var initialLat = "{!mpOpportunity__c.OgglatitudeInput__c}";
+                                                var initialLng = "{!mpOpportunity__c.OgglongitudeInput__c}";
+                                                
+                                                // Convert to numbers, handling null/empty values
+                                                var latValue = initialLat && initialLat !== '' ? parseFloat(initialLat) : null;
+                                                var lngValue = initialLng && initialLng !== '' ? parseFloat(initialLng) : null;
+                                                
+                                                console.log("Initial coordinates from fields:", latValue, lngValue);
+                                                
                                                 $Lightning.createComponent("c:mpMapPickerWrapper",
-                                                    {},
+                                                    {
+                                                        "latitude": latValue,
+                                                        "longitude": lngValue
+                                                    },
                                                     "leafletMapContainer",
                                                     function(cmp) {
-                                                        console.log("Leaflet Map component loaded successfully");
+                                                        console.log("Leaflet Map component loaded successfully with coordinates:", latValue, lngValue);
                                                     }
                                                 );
                                             });

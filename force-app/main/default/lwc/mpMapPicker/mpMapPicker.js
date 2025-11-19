@@ -3,8 +3,8 @@ import { loadStyle, loadScript } from 'lightning/platformResourceLoader';
 import LEAFLET_FILES from '@salesforce/resourceUrl/leafletjs';
 
 export default class MpMapPicker extends LightningElement {
-    @api latitude = 35.68529840930189;  // Default to Tokyo coordinates
-    @api longitude = 139.78112075985524;
+    @api latitude;
+    @api longitude;
     
     @track searchQuery = '';
     @track isSearching = false;
@@ -14,6 +14,7 @@ export default class MpMapPicker extends LightningElement {
     marker;
     mapInitialized = false;
     leafletInitialized = false;
+    useCurrentLocation = false;
 
     get isSearchDisabled() {
         return !this.searchQuery.trim() || this.isSearching;
@@ -34,11 +35,45 @@ export default class MpMapPicker extends LightningElement {
         ])
         .then(() => {
             this.leafletInitialized = true;
-            this.initializeMap();
+            // Check if latitude and longitude are null or undefined
+            if (!this.latitude || !this.longitude || 
+                this.latitude === 0 || this.longitude === 0) {
+                // Use current location
+                this.useCurrentLocation = true;
+                this.getCurrentLocation();
+            } else {
+                this.initializeMap();
+            }
         })
         .catch(error => {
             console.error('Error loading Leaflet', error);
         });
+    }
+
+    getCurrentLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    // Successfully got current location
+                    this.latitude = position.coords.latitude;
+                    this.longitude = position.coords.longitude;
+                    this.initializeMap();
+                },
+                (error) => {
+                    console.error('Error getting current location:', error);
+                    // Fall back to Tokyo Station if geolocation fails
+                    this.latitude = 35.680840;
+                    this.longitude = 139.767009;
+                    this.initializeMap();
+                },
+                { timeout: 5000, enableHighAccuracy: true }
+            );
+        } else {
+            // Geolocation not supported, use Tokyo Station as fallback
+            this.latitude = 35.680840;
+            this.longitude = 139.767009;
+            this.initializeMap();
+        }
     }
 
     initializeMap() {
@@ -60,11 +95,13 @@ export default class MpMapPicker extends LightningElement {
             shadowUrl: LEAFLET_FILES + '/leafletjs/marker-shadow.png'
         });
 
-        // Initialize Leaflet map with maximum zoom as default and add tiles
-        const maxZoom = 19; // choose a high zoom level appropriate for tiles
+        // Initialize Leaflet map with appropriate zoom level
+        const maxZoom = 19;
+        // Use lower zoom if showing current location, higher zoom for specific coordinates
+        const initialZoom = this.useCurrentLocation ? 15 : maxZoom;
         this.map = L.map(mapDiv, {
             center: [this.latitude, this.longitude],
-            zoom: maxZoom,
+            zoom: initialZoom,
             maxZoom: maxZoom
         });
 
@@ -102,8 +139,8 @@ export default class MpMapPicker extends LightningElement {
     }
 
     updateLocation(lat, lng) {
-        this.latitude = parseFloat(lat.toFixed(6));
-        this.longitude = parseFloat(lng.toFixed(6));
+        this.latitude = parseFloat(lat.toFixed(10));
+        this.longitude = parseFloat(lng.toFixed(10));
         this.marker.setLatLng([lat, lng]);
         
         // Dispatch event with new coordinates

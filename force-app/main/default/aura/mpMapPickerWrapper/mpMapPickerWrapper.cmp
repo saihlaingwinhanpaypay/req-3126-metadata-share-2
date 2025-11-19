@@ -1,9 +1,12 @@
 <aura:component implements="flexipage:availableForAllPageTypes" access="global">
-    <aura:attribute name="latitude" type="Decimal" default="35.6762"/>
-    <aura:attribute name="longitude" type="Decimal" default="139.6503"/>
+    <aura:attribute name="latitude" type="Decimal"/>
+    <aura:attribute name="longitude" type="Decimal"/>
     <aura:registerEvent name="locationUpdate" type="c:mpLocationUpdateEvent"/>
     <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
     
-    <!-- LWC Component -->
-    <c:mpMapPicker aura:id="mapPicker" onlocationchange="{!c.handleLocationChange}"/>
+    <!-- LWC Component with latitude and longitude passed from Visualforce -->
+    <c:mpMapPicker aura:id="mapPicker" 
+                   latitude="{!v.latitude}" 
+                   longitude="{!v.longitude}" 
+                   onlocationchange="{!c.handleLocationChange}"/>
 </aura:component>
