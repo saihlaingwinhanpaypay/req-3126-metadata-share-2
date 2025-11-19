@@ -1,0 +1,1043 @@
+<apex:page showheader="false" sidebar="false" standardController="mpOpportunity__c" docType="html-5.0" extensions="mpForm">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="X-Ua-Compatible" content="IE=edge" />
+        <meta http-equiv="Content-Style-Type" content="text/css" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript" />
+        <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+        <meta http-equiv="Pragma" content="no-cache" />
+        <title>お客様情報の入力</title>
+        <meta name="title" content="お客様情報の入力" />
+        <meta name="robots" content="index, follow" />
+        <meta name="description" content="" />
+        <meta name="keywords" content="" />
+        <meta name="language" content="ja" />
+        <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no" />
+        <meta name="format-detection" content="telephone=no" />
+        <apex:stylesheet value="{!URLFOR($Resource.wakamatsu_css, 'wakamatsu_css/common-c718c5bdfc83a159e88c89dcee5d1b94.css')}"/>
+        <apex:stylesheet value="{!URLFOR($Resource.wakamatsu_css, 'wakamatsu_css/styles-183122847b144827c18138cf25aace71.css')}"/>
+        <apex:stylesheet value="{!URLFOR($Resource.wakamatsu_css, 'wakamatsu_css/emg-60a37f2cf1dad087ee8e85cea8de6670.css')}"/>
+        <!--
+        <link rel="stylesheet" type="text/css" media="all" href="https://forms.business.yahoo.co.jp/css/webform/common.css?v=0.0.10" />
+        <link rel="stylesheet" type="text/css" media="all" href="https://forms.business.yahoo.co.jp/css/webform/styles.css?v=0.0.10" />
+        <link rel="stylesheet" type="text/css" media="all" href="https://forms.business.yahoo.co.jp/css/webform/emg-min.css?v=0.0.10" />
+        -->
+        <!--[if lt IE 9]>
+<script src="https://forms.business.yahoo.co.jp//js/webform/html5.js"></script>
+<script src="https://forms.business.yahoo.co.jp//js/webform/css3-mediaqueries.js"></script>
+<![endif]-->
+        <script src="{!URLFOR($Resource.jQuery_3_7_1)}"></script>
+        <script src='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.js'></script>
+        <link href='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.css' rel='stylesheet' />
+        <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.5.1/mapbox-gl-geocoder.min.js"></script>
+        <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.5.1/mapbox-gl-geocoder.css" type="text/css"/>
+        <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-language/v0.10.1/mapbox-gl-language.js'></script>
+        <!-- Promise polyfill script required to use Mapbox GL Geocoder in IE 11 -->
+        <script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js"></script>
+        
+        <!-- Lightning Out for Aura/LWC components -->
+        <apex:includeLightning />
+        
+        <script type="text/javascript">
+            window.BankSearchFunction = function(){
+                window.seachPanel = function(){
+                    var funcPanel = document.querySelector("div#bankSearchPanel");
+                    if(funcPanel) return funcPanel;
+                    else return null;
+                }();
+                window.bankNameInput = function(){
+                    var inputBank = document.querySelector('input#optionFuncBankName');
+                    if(inputBank) return inputBank;
+                    else return null;
+                }();
+                window.branchNameInput = function(){
+                    var inputBranch = document.querySelector('input#optionFuncBranchName');
+                    if(inputBranch) return inputBranch;
+                    else return null;
+                }();
+                window.bankSchRet = function(){
+                    var retPanel = document.querySelector('p#bankSearchResult');
+                    if(retPanel) return retPanel;
+                    else return null;
+                }();
+                var bankUtilController = {
+                    funcPanelClose : function(){
+                        if(seachPanel) seachPanel.style.display = "none";
+                        return false;
+                    },
+                    funcPanelDisplayed : function(){                       
+                        if(!seachPanel || !bankNameInput || !branchNameInput || !bankSchRet) return false;
+                        
+                        seachPanel.style.display = "block";
+                        while (bankSchRet.hasChildNodes()) {bankSchRet.removeChild(bankSchRet.lastChild);}
+                        
+                        branchNameInput.value = "";
+                        branchNameInput.parentNode.style.display = "none";
+                        
+                        bankNameInput.dataset.code = "";
+                        bankNameInput.dataset.bname = "";
+                        bankNameInput.value = "";
+                        bankNameInput.focus();                        
+                    },
+                    funcBindingResult : function(item, selectedFunc){
+                        var liElem = document.createElement("li");
+                        var anchorElem = document.createElement("a");
+                        anchorElem.id=item.value;
+                        anchorElem.dataset.bcode=item.value;
+                        anchorElem.dataset.bname=item.label;
+                        anchorElem.appendChild(document.createTextNode("["+item.value+"] "+item.label));
+                        if(window.addEventListener) anchorElem.addEventListener("click", selectedFunc, false);
+                        else if(window.attachEvent) anchorElem.attachEvent("onclick", selectedFunc);
+                        
+                        liElem.appendChild(anchorElem);
+                        return liElem;
+                  
+                    },
+                    funcDirectReflection : function(){
+                        var bkName = document.querySelector("input[id$=bankName]");
+                        var bncName = document.querySelector("input[id$=branchName]");
+                        if(bkName && bncName) {bkName.value=bankNameInput.value;bncName.value=branchNameInput.value;}
+                        bankUtilController.funcPanelClose();
+                    },
+                    funcZeroResult : function(){
+                        var liElem = document.createElement("li");
+                        var anchorElem = document.createElement("a");
+                        
+                        anchorElem.appendChild(document.createTextNode("このまま反映する"));
+                        anchorElem.classList.add("searchFunc");
+                        if(window.addEventListener) anchorElem.addEventListener("click", bankUtilController.funcDirectReflection, false);
+                        else if(window.attachEvent) anchorElem.attachEvent("onclick", bankUtilController.funcDirectReflection);
+                        
+                        liElem.appendChild(anchorElem);
+                        return liElem;
+                    },
+                    funcInitSearch : function(){
+                        if(!bankNameInput || !bankSchRet || !branchNameInput) return false;                       
+                        bankUtilController.funcPanelDisplayed();
+                        while (bankSchRet.hasChildNodes()) {bankSchRet.removeChild(bankSchRet.lastChild);}
+                        mpForm.initSearchBank(function(result, event){
+                            if(event.status){
+                                var ulElem = document.createElement("ul");
+                                result.forEach(function(item, index){
+                                    ulElem.appendChild(bankUtilController.funcBindingResult(item, bankUtilController.funcBankSelected));
+                                });
+                                bankSchRet.appendChild(ulElem);
+                            } else if (event.type === 'exception') {//Error処理 console.log(event.message);
+                            } else {//Error処理 console.log(event.message);
+                            }
+                        });
+                        return false;
+                    },
+                    funcSearchBank : function(){
+                        if(!bankNameInput || !bankSchRet || !branchNameInput) return false;
+                        var seachTerm = bankNameInput.value;
+                        bankUtilController.funcPanelDisplayed();
+                        bankNameInput.value = seachTerm;
+                        bankNameInput.dataset.code = "";
+                        bankNameInput.dataset.bname = "";
+                        while (bankSchRet.hasChildNodes()) {bankSchRet.removeChild(bankSchRet.lastChild);}
+                        mpForm.SearchBank(seachTerm, function(result, event){
+                            if(event.status){
+                                var ulElem = document.createElement("ul");
+                                result.forEach(function(item, index){
+                                    if(item.value=="9900") return;
+                                    ulElem.appendChild(bankUtilController.funcBindingResult(item, bankUtilController.funcBankSelected));
+                                });
+                                if(ulElem.childNodes.length < 1) ulElem.appendChild(bankUtilController.funcZeroResult());
+                                bankSchRet.appendChild(ulElem);
+                            } else if (event.type === 'exception') {//Error処理 console.log(event.message);
+                            } else {//Error処理 console.log(event.message);
+                            }
+                        });
+                        return false;
+                    },
+                    funcSearchBranch : function(){
+                        if(!bankNameInput || !branchNameInput || !bankSchRet) return false;
+                        while (bankSchRet.hasChildNodes()) {bankSchRet.removeChild(bankSchRet.lastChild);}
+                        mpForm.SearchBank_BranchOffice(bankNameInput.dataset.code, bankNameInput.dataset.bname, branchNameInput.value, function(result, event){
+                            if(event.status) {
+                                var ulElem = document.createElement("ul");
+                                result.forEach(function(item, index){
+                                    ulElem.appendChild(bankUtilController.funcBindingResult(item, bankUtilController.funcBranchSelected));
+                                });
+                                if(ulElem.childNodes.length < 1) ulElem.appendChild(bankUtilController.funcZeroResult());
+                                bankSchRet.appendChild(ulElem);
+                            } else if (event.type === 'exception') {//Error処理 console.log(event.message);
+                            } else {//Error処理 console.log(event.message);
+                            }
+                        });
+                        return false;
+                    },
+                    funcBankSelected : function(event){
+                        var anchor = event.target;
+                        if(anchor && bankNameInput && branchNameInput){
+                            bankNameInput.value=anchor.dataset.bname;
+                            bankNameInput.dataset.code=anchor.dataset.bcode;
+                            bankNameInput.dataset.bname=anchor.dataset.bname;
+                            var anchorParent = anchor.parentNode;
+                            while (anchorParent.hasChildNodes()) {anchorParent.removeChild(anchorParent.lastChild);}
+                            branchNameInput.parentNode.style.display = "block";
+                            bankUtilController.funcSearchBranch();
+                        }
+                    },
+                    funcBranchSelected : function(event){
+                        var anchor = event.target;
+                        var bkName = document.querySelector("input[id$=bankName]");
+                        var bncName = document.querySelector("input[id$=branchName]");
+                        if(bkName && bncName) {bkName.value=bankNameInput.dataset.bname;bncName.value=anchor.dataset.bname;}
+                        bankUtilController.funcPanelClose();
+                    },
+                };
+                window.BankSearchnUtil = bankUtilController;
+            };
+            window._valid = function(event){
+                var IsValid = true;
+                var inputKozameigikana=document.querySelector("input[id$='kozameigikana']");
+                inputKozameigikana.setCustomValidity("");
+                var regExpStr = /^([ァ-ン０-９0-9Ａ-ＺA-Z]|ヴ|（|）|－|．|／|「|」|￥|ー|　|\(|\)|\-|\.|\/|｢|｣|\x20)+$/;
+                if(!inputKozameigikana.value.match(regExpStr)){
+                    inputKozameigikana.setCustomValidity("口座名義カナに使用できない文字が含まれます。");
+                }
+                Array.prototype.forEach.call(document.querySelectorAll("input[type=file]"),function(inpt){
+                    inpt.parentNode.classList.remove("validSizeErr");
+                    //file 添付チェック
+                    if(inpt.value.length > 0){
+                        //file size check 4194304
+                        Array.prototype.forEach.call(inpt.files, function(file){
+                            if(file.size > 4194304) inpt.parentNode.classList.add("validSizeErr");
+                        });
+                        
+                        IsValid = IsValid && (!(inpt.parentNode.classList.contains("validSizeErr")));
+                    }
+                });
+                //緯度・経度チェック
+                var inputYlatitude=document.querySelector("input[id$='ylatitude']");
+                var inputYlongitude=document.querySelector("input[id$='ylongitude']");
+                var errorMap=document.querySelector("div#errorMap");
+                if ((inputYlatitude.value == '' && inputYlongitude.value == '') || (inputYlatitude.value == 0 && inputYlongitude.value == 0)) {
+                    errorMap.style.display="block";
+                    inputYlatitude.focus();
+                    IsValid = false;
+                } else {
+                    errorMap.style.display="none";
+                }
+                if(!IsValid){
+                    if(window.addEventListener){
+                        event.preventDefault();
+                    }else if(window.attachEvent){
+                        event.returnValue=false;
+                    }
+                }
+            };
+            window._init = function(){
+                var agreeChk = document.querySelector("input[id$=chkOver1Agree]");
+                selectOverAgreement(agreeChk);
+           
+                var sbmit = document.querySelector("input[type=submit]");
+                if(sbmit && sbmit.addEventListener){
+                    sbmit.addEventListener("click", _valid, false);
+                }else if(sbmit && sbmit.attachEvent){
+                    sbmit.attachEvent("onClick", _valid);
+                }
+
+                window.BankSearchFunction();
+            };
+            if(window.addEventListener) window.addEventListener("load", _init, false);
+            else if(window.attachEvent) window.attachEvent("onload", _init);
+        </script>
+        <script type="text/javascript">
+            $(function(){
+                var lng = "{! mpLngLatDefault[0]}";
+                var lat = "{! mpLngLatDefault[1]}";
+                var zoom = 17;
+
+                var showMap = function() {
+                    mapboxgl.accessToken = 'pk.eyJ1IjoicGF5cGF5IiwiYSI6ImNrN2N6M2IyczFqenozZm51ZnpkYTdkeDMifQ.4_5A29W-U_Pm8WuBoDGaqw';
+                    var map = new mapboxgl.Map({
+                    container: 'map',
+                        style: 'mapbox://styles/mapbox/streets-v10',
+                        center: [lng, lat],
+                        zoom: zoom
+                    });
+                    map.addControl(new MapboxGeocoder({
+                        accessToken: mapboxgl.accessToken,
+                        mapboxgl: mapboxgl,
+                        collapsed: true
+                    }));
+                    map.addControl(new MapboxLanguage({
+                        defaultLanguage: 'ja'
+                    }));
+                    var nav = new mapboxgl.NavigationControl();
+                    map.addControl(nav, 'top-left');
+                    var marker = null;
+    
+                    if (lng != "{!mpOpportunity__c.OgglongitudeInput__c}" || lat != "{!mpOpportunity__c.OgglatitudeInput__c}") {
+                        $("input[id$='ylatitude']").val('');
+                        $("input[id$='ylongitude']").val('');
+                    } else {
+                        marker = new mapboxgl.Marker()
+                            .setLngLat([lng, lat])
+                            .addTo(map);
+                    }
+                
+                    map.on('click', function(e) {
+                        console.log('A click event has occurred at ' + e.lngLat);
+                        //マーカーを削除
+                        if(marker != null) {
+                            marker.remove();
+                        }
+                        //マーカーを追加
+                        marker = new mapboxgl.Marker()
+                            .setLngLat(e.lngLat)
+                            .addTo(map);
+                        // フォームに緯度・経度を設定
+                        $("input[id$='ylongitude']").val(e.lngLat.lng);
+                        $("input[id$='ylatitude']").val(e.lngLat.lat);
+                    });
+                };
+                
+                if (lng == "0" && lat == "0") {
+                    if (navigator.geolocation) {
+                        //Geolocation APIに対応している場合、現在地を取得して緯度経度が設定された地図を表示
+                        // 現在地を取得
+                        navigator.geolocation.getCurrentPosition(
+                            //取得成功した場合
+                            function(position) {
+                                //現在地を設定して地図を表示
+                                lng = position.coords.longitude;
+                                lat = position.coords.latitude;
+                                showMap();
+                            },
+                            //取得失敗した場合
+                            function(error) {
+                                console.log(error);
+                                // 東京駅
+                                lng = 139.767009;
+                                lat = 35.680840;
+                                zoom = 13;
+                                showMap();
+                            },
+                            { timeout: 3500 } // 3秒でタイムアウトさせる
+                        );
+                    } else {
+                        // 東京駅
+                        lng = 139.767009;
+                        lat = 35.680840;
+                        zoom = 13;
+                        showMap();
+                    }
+                } else {
+                    showMap();
+                }
+            });
+        </script>
+        <script type="text/javascript">
+        $(function(){
+            var $accountText = $('.account-text');
+
+            $('select[id$=":InputDepositAccountType"]').change(function(){
+                $accountText.hide();
+                switch($(this).val()) {
+                    case '通常登録':
+                        $accountText.filter('.account-text-normal').show();
+                        break;
+                    case '一括入金業務委託契約':
+                        $accountText.filter('.account-text-bulkdeposit').show();                   
+                        break;
+                    case '誓約書契約':
+                        $accountText.filter('.account-text-pledge').show();
+                        break;
+                }
+            }).change();
+        });
+        </script>
+        <script>
+        function selectOverAgreement(istrue){
+            if(istrue.checked) {
+                document.getElementById('EarlyPayoutCycleInfo').style.display = 'block';
+            }else{
+                document.getElementById('EarlyPayoutCycleInfo').style.display = 'none';
+                var agreeChk = document.querySelector("input[id$=chkEarlyPayoutCycle]");
+                agreeChk.checked = false;
+            }
+        }
+        </script>
+        <style type="text/css">
+            
+            #masthead h1 a{
+            background-image:url(https://s.yimg.jp/c/logo/f/2.0/yj_r_34.png);
+            width:136px;
+            height:34px;
+            }
+            @media all and (max-width: 568px) {
+            #masthead {
+            background: #0065CB;
+            background: -webkit-gradient(linear,left top,left bottom,color-stop(0,#599bde),color-stop(0.49,#005ebd),color-stop(0.50,#0050a0),color-stop(1,#0061c2));
+            background: -moz-linear-gradient(top,#599bde 0,#0061c2 49%,#0050a0 50%,#005ebd 100%);
+            background: linear-gradient(top,#599bde 0,#0061c2 49%,#0050a0 50%,#005ebd 100%);
+            }
+            #masthead h1 a{
+            background-image:url(https://s.yimg.jp/c/logo/s/2.0/yj_w_22.png);
+            width:40px;
+            }
+            }
+            @media all and (max-width: 568px) and (-webkit-min-device-pixel-ratio: 2) {
+            #masthead h1 a{
+            background-image:url(https://s.yimg.jp/c/logo/s/2.0/yj_r_22_2x.png);
+            -webkit-background-size: 40px 22px;
+            }
+            }
+            label{
+            text-align:left;
+            }
+            /* Bank検索パネル関連 */
+            div#bankSearchPanel{
+                z-index: 100;
+                position: fixed;
+                width: 96%;
+                height: 96%;
+                text-align: center;
+                top: 10px;
+                left: 10px;
+                background-color: #808080b8;                
+            }
+            div#bankSearchPanel > div.panel {
+                background-color: #ffffffeb;
+                height: 95%;
+                padding: 5% 1% 1% 1%;
+                margin: 5% 3% 5% 3%;
+                border-radius: 1em 1em 1em 1em;
+            }
+            div#bankSearchPanel a, div#bankSearchPanel input {
+                color: #666;
+                font-size: 1em!important;
+                text-indent: 0.5em;
+            }
+            a.searchFunc {
+                font-size: 1em!important;
+                text-indent: 0.5em!important;
+                border-radius: 20px 20px 20px 20px!important;
+                background-color: #666!important;
+                color: #eaeaea!important;
+                padding: 0px 5px 0px 5px!important;
+            }
+            p.searchResult {
+                overflow: auto;
+                height: 75%;
+            }
+            p.searchResult a{
+                line-height: 2.2em;
+                cursor: pointer!important;
+            }
+            span.closeFunc{
+                border-radius: 20px 20px 20px 20px;
+                padding: 0px 5px 0px 5px;
+                margin-top: -4%;
+                background-color: #666;
+                color: #eaeaea;
+                font-weight: bolder;
+                right: 5%;
+                position: absolute;
+            }
+            span.closeFunc:hover{
+                cursor: pointer;
+            }
+            @media screen and (max-width: 680px){
+                div#bankSearchPanel > div.panel {
+                    text-align: left;
+                }
+                p.searchResult {
+                    white-space: nowrap;
+                    padding-left: 10%;
+                }
+                div.inputWrapp{
+                    padding-left: 10%;
+                    white-space: nowrap;
+                }
+                div#bankSearchPanel input {
+                    margin: 5px 0px 5px 0px!important;
+                }
+                div.inputWrapp>a{
+                    display: table-cell;
+                    padding: 0px 10px 0px 5px!important;
+                    white-space: pre;
+                }
+            }
+            @media screen and (min-width: 680px){
+            
+                div#bankSearchPanel{
+                    font-size: x-large;
+                }
+                p.searchResult {
+                    white-space: nowrap;
+                    padding-left: 30%;
+                    padding-right: 55%;
+                }
+                div.inputWrapp{
+                    padding-left: 30%;
+                    padding-right: 55%;
+                    white-space: nowrap;
+                }
+            }
+            /* 以下Bank検索パネル関連 ここまで */
+            
+            /* 添付ファイルサイズチェックErrMsg */
+            .validSizeErr:after{content: "サイズが4MB以上のファイルは送信できません。"; color:red; font-size: 12px;}
+            .account-text{
+                display:none;
+            }
+
+            #map input[type=text].mapboxgl-ctrl-geocoder--input{
+                padding:6px 35px;
+                min-width:0px;
+                border:none;
+            }
+            #map li{
+                margin: 0
+            }
+
+            /* SALESFORCE-6797 PRD29 */
+            .c-box {
+                border: solid 1px #a7a7a7;
+                background: #F4F4F4;
+                padding: 10px;
+                margin-right: auto;
+                margin-left: auto;
+                overflow: hidden;
+                position: relative;
+                /* アイコン付 */
+                /* ナンバリング */
+                /* 角丸ボックス */
+                /* 配色バリエーション */
+            }
+            .c-box.green {
+                border-color: #20BF7A;
+                background: #F5FEFC;
+            }
+            .c-box.green .c-box__iconttl {
+                color: #242323;
+                font-weight: bold;
+            }
+            a:link { color: #0000ff; }
+            a:visited { color: #000080; }
+            a:hover { color: #0000ff; }
+            a:active { color: #0000ff; }
+        </style>
+        
+    </head>
+    
+    <div id="wrapper">
+        <div id="bankSearchPanel" style="display:none;">
+            <div class="panel">
+                <span class="closeFunc" onclick="return BankSearchnUtil.funcPanelClose();">×</span>
+                <div class="inputWrapp">
+                    <input type="text" id="optionFuncBankName" name="optionFuncBankName" placeholder="銀行名 or 銀行コード"/>
+                    <a id="bankSearchRun" class="searchFunc" href="#" onclick="return BankSearchnUtil.funcSearchBank();">検索</a>
+                </div>
+                <div class="inputWrapp">
+                    <input type="text" id="optionFuncBranchName" name="optionFuncBranchName" placeholder="支店名 or 支店コード"/>
+                    <a id="bankSearchRun" class="searchFunc" href="#" onclick="return BankSearchnUtil.funcSearchBranch();">絞込み</a>
+                </div>
+                <br/>
+                <p id="bankSearchResult" class="searchResult"></p>
+            </div>
+        </div>
+        <div id="contents">
+            <div id="yjContentsHeader"></div>
+            <div id="yjContentsBody">
+                <span class="yjGuid">
+                    <a name="yjContentsStart" id="yjContentsStart"></a>
+                    <img src="https://s.yimg.jp/yui/jp/tmpl/1.1.0/clear.gif" alt="ここから本文です" width="1" height="1" />
+                </span>
+                <div id="yjMain">
+                    <div class="yjMainGrid">
+                        <div class="yjms-page-title">
+                            <h1>PayPay　申し込み情報入力</h1>
+                        </div>
+                        <!-- /.yjms-page-title -->
+                        <div id="mod_explanation">
+                            <p>
+                                <br /> 続いて口座情報等を登録してください。
+                                <br /> ゆうちょ銀行以外の金融機関をご登録ください。
+                                <br /> すべての項目を入力してください。なお、ご本人名義の口座に限ります。
+                                <br />
+                                <br /> ※
+                                <em class="required" title="必須">*</em>印の項目は入力必須です。
+                            </p>
+                        </div>
+                        <!--/#explanation-->
+                        
+                        <apex:form StyleClass="pfFormStyle">
+                            <fieldset>
+
+                            <apex:outputPanel rendered="{! mpOpportunity__c.PayCyclePattern__c == 'エンプラ'}">
+                                <div class="pfHeadline">
+                                    <span style="font-size:20px;">振込サイクル</span>
+                                </div>
+                                <div class="pfFormObject">
+                                    <div class="pfLabel" style="margin-top:10px;">
+                                        <p>
+                                            <label for="">振込タイミングについて</label>
+                                        </p>
+                                    </div>
+                                    <div class="pfInput">
+                                        <p>
+                                            <apex:selectList value="{! mpOpportunity__c.PayCycle__c}" size="1" required="True">
+                                                <apex:selectOption itemValue="月１回(末締め末払)" itemLabel="月1回（月末日締め、翌月末営業日払い）" />
+                                                <!-- SALESFORCE-534 暫定対応コメントアウト
+                                                <apex:selectOption itemValue="月２回(15締末払)" itemLabel="月2回（15日締め、当月末営業日払い・月末締め、翌月15日払い）"/>
+                                                -->
+                                            </apex:selectList>
+                                        </p>
+                                        <p class="lead">
+                                            <!-- SALESFORCE-534  静的リソースの変更（PayPayPayCycle2　→　PayPayPayCycleDiy_OneBillion2）, 注釈文言修正 -->
+                                            <apex:image url="{!$Resource.PayPayPayCycleDiy_OneBillion2}" style="max-width:100%;" />
+                                            ※1 入金日に金融機関が休業日の場合、前営業日に入金となります。
+                                        </p>
+                                    </div>
+                                </div>
+                            </apex:outputPanel>
+
+                            <apex:outputPanel rendered="{! mpOpportunity__c.PayCyclePattern__c != 'エンプラ'}">
+                                <div class="pfHeadline">
+                                    <span style="font-size:20px;">振込サイクル</span>
+                                </div>
+                                <div class="pfFormObject">
+                                    <div class="pfLabel" style="margin-top:10px;">
+                                        <p>
+                                            <label for="">振込サイクルについて</label>
+                                        </p>
+                                    </div>
+                                    <div class="pfInput">
+                                        <!--下記使用する画像サイズ調整のため、widthの固定値を612pxに指定-->
+                                        <div style="width:612px">
+                                            PayPayの標準振込サイクルは当月末締め(月1回)振込となります。<br />
+                                            <br />
+                                            <apex:image url="{!$Resource.PayPayPayCycle4merit}" style="max-width:100%;" />
+                                            <p style="padding-top:20px"><apex:image url="{!$Resource.PayPayPayCycleMonthImage}" style="max-width:100%" /></p>
+                                        </div>
+                                        <p style="margin-top:10px;text-align: left;font-size:13px;padding-left:5px;">
+                                            ※1&nbsp; 加盟店様の任意加盟店様の任意の金額で設定可（1~10万円、1万円単位）<br />
+                                            ※2&nbsp; 月末日は、振込手数料は無料<br/>
+                                        </p>
+                                        最短翌日サイクルをご希望の場合は、「早期振込サービス（自動）」にお申込みください<br />
+
+                                        <div style="margin-top:10px;">
+                                            <apex:outputLabel >
+                                                <apex:InputField id="chkOver1Agree" value="{! mpOpportunity__c.Over1Agreement__c}" onclick="selectOverAgreement(this)"/>
+                                                最短翌日サイクルにする（早期振込サービスに申込む）
+                                            </apex:outputLabel>
+                                        </div>
+                                        
+                                        <div id="EarlyPayoutCycleInfo" style="display:none;border-top:3px solid #aaa;padding-top:10px;">
+                                            <p style="text-align: left;font-size:13px;font-weight: bold;">
+                                                「最短翌日サイクル」をご希望の場合、以下「早期振込サービス（自動）」のお申込みが必要です。<br/>
+                                            </p> 
+                                            <div style="margin-bottom:1３px;font-size:90%;">
+                                                ■早期振込サービス（自動）（以下、本サービス）は、入金額を毎日確認し設定金額を超過した日の最短翌日に加盟店指定の金融機関口座へ振込するサービスです。<br />
+                                                <br />
+                                                ・ご利用の条件は以下のとおりです<br />
+                                                <p style="text-align: left;font-size:13px;">
+                                                    ・本サービスにはお申込みが必要です。決済サービスの利用状況により、本サービスをご利用いただけない場合があります。<br />
+                                                    ・自動振込利用料は、取引毎・決済金額に対して計算します。<br />
+                                                    ・月末日は、振込額にかかわらず「月末日締め・翌日から3営業日後入金（金融機関による）」で振込みます。（自動振込利用料必要、振込手数料無料）<br />
+                                                    ・入金タイミングはご利用の金融機関により異なります。PayPay銀行は振込日の翌日、その他金融機関は翌々営業日を目安に入金されます。<br />
+                                                    ・振込可能金額の初期設定は3万円です。振込サイクル設定完了後、1円または1万〜10万円（1万円単位）に変更可能です。<br />
+                                                    ・本サービスご契約期間中に早期振込サービス（都度）を利用して振込する場合も自動振込利用料は発生します。詳細は <a class="u-text-link blank" href="https://paypay.ne.jp/help-merchant/B0570/?utm_source=va&utm_medium=link&utm_campaign=page" target="_blank">こちら</a><br/></p>
+                                                <br />
+                                            </div>
+
+                                            <p style="text-align: left;font-size:13px;margin-top:10px;">
+                                                ■本ページから早期振込サービス(自動)をお申込みいただく場合、<br/>
+                                                早期振込サービス（自動）利用契約が成立（※3）したときより本サービスが適用されます。<br/>
+                                                <br/>
+                                                ■本フォームから本サービスにお申込みしない場合、<br/>
+                                                PayPay for Businessから後日お申込みいただけます。その場合は以下のスケジュールで適用されます。<br/>
+                                                ●毎月19日までに早期振込サービス（自動）にお申込みいただいた場合、<br/>翌月1日より売上金の翌日振込（※4）が適用されます。
+                                            </p>
+                                            <div style="margin-bottom:10px;font-size:90%;">
+                                                ※3&nbsp; 当社からの「ご利用開始のお知らせ」メール到達をもって、早期振込サービス（自動）のお申込みが完了します。<br />
+                                                ※4&nbsp; 金融機関によっては、振込が翌営業日以降になる場合があります。<br/><br/>
+                                            </div>
+                                            <div style="margin-bottom:30px;font-size:90%; font-weight: bold;">
+                                                <a class="u-text-link blank" href="https://about.paypay.ne.jp/docs/terms/paypay-merchant-earlypayout-service/" target="_blank">早期振込サービス（自動）規約 (※5)</a><br />
+                                                ※5 早期振込サービス（自動）規約第4条（契約の成立）第4項にかかわらず、本申込みフォームより本サービスのご利用をお申し込みいただいた場合、早期振込サービス（自動）利用契約が成立したときより本サービスが適用されます。<br />
+                                            </div>
+                                            <div style="border-top:1px solid #aaa;padding-top:10px;">
+                                                <em class="required" title="必須">*</em>
+                                                <apex:outputLabel >
+                                                        <apex:InputField id="chkEarlyPayoutCycle" value="{! mpOpportunity__c.EarlyPayoutCycle__c}" />
+                                                            早期振込サービス（自動）規約に同意および上記内容を承諾し、早期振込サービス（自動）に申込む
+                                                     </apex:outputLabel>
+                                               </div> 
+                                            </div>
+                                    </div>
+                                </div>
+                            </apex:outputPanel>
+
+                            <apex:outputPanel rendered="{!IF(AND(mpOpportunity__c.FormStoreSales__c != '屋台・機内・社内・移動販売', mpOpportunity__c.MerchandiseClassification__c != '交通') ,true,false)}">
+                            
+                                <div class="pfHeadline">
+                                    <span style="font-size:20px;">地図表示</span>
+                                </div>
+                                <div class="pfFormObject">
+                                    <div class="pfLabel">
+                                        <p>
+                                            <label for="">地図掲載開始予定日</label>
+                                            <em class="required" title="必須">*</em>
+                                        </p>
+                                    </div>
+                                    <div class="pfInput">
+                                        <p>
+                                        <apex:outputLabel >
+                                            <apex:selectList id="addmap" value="{! mpOpportunity__c.MapDisplayTime__c}" size="1" required="True">
+                                                <apex:selectOption itemValue="キット到着後、約１週間後に掲載" itemLabel="キット到着後、約１週間後に掲載"/>
+                                                <apex:selectOption itemValue="審査可決後、約1ヵ月後に掲載" itemLabel="審査可決後、約1ヵ月後に掲載"/>
+                                                <apex:selectOption itemValue="審査可決後、約3ヵ月後に掲載" itemLabel="審査可決後、約3ヵ月後に掲載"/>
+                                            </apex:selectList> 
+                                        </apex:outputLabel>
+                                        </p>
+                                        <p class="lead">
+                                        掲載予定日は目安です。
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="pfFormObject">
+                                    <div class="pfLabel">
+                                        <p>
+                                            <label for="">地図掲載位置</label>
+                                            <em class="required" title="必須">*</em>
+                                        </p>
+                                    </div>
+                                    <div class="pfInput">
+                                        <p>
+                                            地図をタップして店舗の位置にピンを立ててください。
+                                            <div id="map" style="width:700px; height:480px; max-width:100%;"></div>
+                                            <div id="errorMap" class="errorMsg" style="display: none;">
+                                                <strong>エラー:</strong>
+                                                &nbsp;地図にピンを立ててください
+                                            </div>
+                                        </p>
+                                        <p>
+                                            緯度<span style="margin-left: 1em;"></span><apex:InputText value="{! mpOpportunity__c.OgglatitudeInput__c}" html-placeholder="" id="ylatitude" html-readonly="true"/>
+                                        </p>
+                                        <p>
+                                            経度<span style="margin-left: 1em;"></span><apex:InputText value="{! mpOpportunity__c.OgglongitudeInput__c}" html-placeholder="" id="ylongitude" html-readonly="true"/>
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Leaflet LWC Map Component -->
+                                <div class="pfFormObject" style="margin-top: 20px;">
+                                    <div class="pfLabel">
+                                        <p>
+                                            <label for="">地図掲載位置 (Leaflet LWC)</label>
+                                        </p>
+                                    </div>
+                                    <div class="pfInput">
+                                        <div id="leafletMapContainer"></div>
+                                        
+                                        <script>
+                                            // Function to update location inputs from Aura component
+                                            window.updateLocationFromAura = function(latitude, longitude) {
+                                                var latInput = document.querySelector('input[id*="ylatitude"]');
+                                                var lngInput = document.querySelector('input[id*="ylongitude"]');
+                                                
+                                                if (latInput && lngInput) {
+                                                    latInput.value = latitude;
+                                                    lngInput.value = longitude;
+                                                    
+                                                    // Trigger change event for validation
+                                                    var changeEvent = new Event('change', { bubbles: true });
+                                                    latInput.dispatchEvent(changeEvent);
+                                                    lngInput.dispatchEvent(changeEvent);
+                                                }
+                                            };
+                                            
+                                            // Initialize Leaflet Map component
+                                            $Lightning.use("c:mpMapPickerApp", function() {
+                                                $Lightning.createComponent("c:mpMapPickerWrapper",
+                                                    {},
+                                                    "leafletMapContainer",
+                                                    function(cmp) {
+                                                        console.log("Leaflet Map component loaded successfully");
+                                                    }
+                                                );
+                                            });
+                                        </script>
+                                    </div>
+                                </div>
+                            </apex:outputPanel>
+                                
+                            <div class="pfHeadline">
+                                <span style="font-size:20px;">金融機関</span>
+                            </div>
+
+                            <div class="pfFormObject">
+                                <div class="pfLabel" style="margin-top:10px;">
+                                    <p>
+                                        <label for="">入金口座登録の種類</label>
+                                        <em class="required" title="必須">*</em>
+                                    </p>
+                                </div>
+                                <div class="pfInput">
+                                    <p>
+                                        <apex:InputField type="text" value="{! mpOpportunity__c.DepositAccountType__c}" id="InputDepositAccountType" required="True"/>
+                                    </p>
+                                </div>
+                            </div>
+    
+                            <div class="pfFormObject">
+                                <div class="pfLabel" style="margin-top:10px;">
+                                    <p>
+                                        <label for="">金融機関名</label>
+                                        <em class="required" title="必須">*</em>
+                                    </p>
+                                </div>
+                                <div class="pfInput">
+                                    <p>
+                                        <apex:InputField type="text" value="{! mpOpportunity__c.FinancialInstitutionName__c}" html-placeholder="" required="True" id="bankName" onfocus="BankSearchnUtil.funcInitSearch();" />
+                                    </p>
+                                    <p class="lead"> ゆうちょ銀行以外の金融機関をご登録ください。<br/>
+                                    【注意】2021年4月5日よりジャパンネット銀行はPayPay銀行に名称を変更しています。
+                                    </p>
+                                </div>
+                            </div>
+    
+                            <div class="pfFormObject">
+                                <div class="pfLabel" style="margin-top:10px;">
+                                    <p>
+                                        <label for="">支店名</label>
+                                        <em class="required" title="必須">*</em>
+                                    </p>
+                                </div>
+                                <div class="pfInput">
+                                    <p>
+                                        <apex:InputField type="text" value="{! mpOpportunity__c.BranchName__c}" html-placeholder="" required="True" id="branchName"/>
+                                    </p>
+                                </div>
+                            </div>
+    
+                            <div class="pfFormObject">
+                                <div class="pfLabel" style="margin-top:10px;">
+                                    <p>
+                                        <label for="">口座種別</label>
+                                        <em class="required" title="必須">*</em>
+                                    </p>
+                                </div>
+                                <div class="pfInput">
+                                    <p>
+                                        <apex:InputField type="text" value="{! mpOpportunity__c.AccountType__c}" html-placeholder="" required="True" />
+                                    </p>
+                                </div>
+                            </div>
+    
+                            <div class="pfFormObject">
+                                <div class="pfLabel" style="margin-top:10px;">
+                                    <p>
+                                        <label for="">口座番号</label>
+                                        <em class="required" title="必須">*</em>
+                                    </p>
+                                </div>
+                                <div class="pfInput">
+                                    <p>
+                                        <apex:InputText value="{! mpOpportunity__c.AccountNumber__c}" maxlength="7" html-placeholder="例： 1234567" html-pattern="\d*"
+                                            required="True" style="margin-top:10px;" />
+                                    </p>
+                                    <p class="lead">口座番号（7けた）を入力してください。</p>
+                                </div>
+                            </div>
+    
+                            <div class="pfFormObject">
+                                <div class="pfLabel" style="margin-top:10px;">
+                                    <p>
+                                        <label for="">口座名義（カナ）</label>
+                                        <em class="required" title="必須">*</em>
+                                    </p>
+                                </div>
+                                <div class="pfInput">
+                                    <p>
+                                        <apex:inputText id="kozameigikana" value="{! mpOpportunity__c.AccountHolder__c}" maxlength="60" html-placeholder="例： ペイペイ（カ" html-pattern="[．−／（）,\.\)\(\-\/,\u30A1-\u30FF,ァ-ンヴー|　| ,0-9A-Za-z]*"
+                                            required="True" style="margin-top:10px;" />
+                                    </p>
+                                </div>
+                            </div>
+                            <apex:outputPanel rendered="{! mpOpportunity__c.CorporateForm__c == '法人'}">
+                                <div class="pfFormObject">
+                                    <div class="pfInput">
+                                        <div style="font-size:12px;" class="account-text account-text-normal">
+                                            <span style="font-weight:bold;">◆通常登録　法人様の場合</span><br />
+                                            <div style="padding:10px;border:1px solid #aaa;border-radius:5px;">
+                                                <span style="color:#F00;">口座名義に「法人名カナ」「代表者氏名カナ」のいずれかを含めてください。</span><br />
+                                                「法人名カナ」を含む場合は下記をご確認ください。<br />
+                                                <br />
+                                                法人格の表記に略字をご使用ください。略字は下記表をご確認ください。<br />
+                                                法人格と社名のみで振込みができますので、「ダイヒョウトリシマリヤク」や「代表者名」などを
+                                                入力する必要はございません。<br />
+                                                下記表に記載のない法人様の場合は、法人格の表記を略さずにすべて入力ください。<br />
+                                                <br />
+                                                <span style="font-weight:bold;">略字の使用例）</span><br />
+                                                <span style="font-weight:bold;text-decoration:underline;">株式会社日本： カ）ニホン　<br />
+                                                日本株式会社新宿営業所： ニホン（カ）シンジユク（エイ）<br />
+                                                日本株式会社： ニホン（カ</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{! mpOpportunity__c.CorporateForm__c != '法人'}">
+                                    <div class="pfFormObject">
+                                        <div class="pfInput">
+                                            <div style="font-size:12px;" class="account-text account-text-normal">
+                                                <span style="font-weight:bold;">◆通常登録　個人事業主様の場合</span><br />
+                                                <div style="padding:10px;border:1px solid #aaa;border-radius:5px;">
+                                                    <span style="color:#F00;">口座名義に「代表者カナ」を含めてください。※原則代表者名義の口座のみ</span><br />
+                                                    <br />
+                                                    別名義を指定する場合は、代表者の同居家族名義のみ可能となります。<br />
+                                                    住民票を提出いただき、同居家族であることを確認しますので、お申込後に弊社担当よりご連絡いたします。<br />
+                                                    <br />
+                                                    姓と名の間に、全角スペースを入力してください。<br />
+                                                    口座名義に屋号が含まれる場合は、屋号、姓、名の間に全角スペースを入れてください。<br />
+                                                    <br />
+                                                    <span style="font-weight:bold;">入力例）</span><br />
+                                                    <span style="font-weight:bold;text-decoration:underline;">ペイペイタロウ：ペイペイ（全角スペース）タロウ<br />
+                                                    PayPay商事ペイペイタロウ：ペイペイショウジ（全角スペース）ペイペイ（全角スペース）タロウ</span><br />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </apex:outputPanel>
+                                <div class="pfFormObject">
+                                    <div class="pfInput">
+                                        <div style="font-size:12px;" class="account-text account-text-bulkdeposit">
+                                            <span style="font-weight:bold;">◆一括入金業務委託契約の場合</span><br />
+                                            <div style="padding:10px;border:1px solid #aaa;border-radius:5px;">
+                                                <span style="color:#F00;">契約締結時に事前に提出いただいている、指定Excelファイル記載の一括入金口座情報を入力してください。</span>
+                                                <br />
+                                                以降の画面で以下情報が必要になります。
+                                                <ul style="list-style:disc;margin-top:5px;">
+                                                    <li>稟議番号</li>
+                                                    <li>業務委託先法人名</li>
+                                                    <li>業務委託先法人名フリガナ</li>
+                                                    <li>同意書の画像</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div style="font-size:12px;" class="account-text account-text-pledge">
+                                            <span style="font-weight:bold;">◆誓約書契約の場合</span><br />
+                                            <div style="padding:10px;border:1px solid #aaa;border-radius:5px;">
+                                                <span style="color:#F00;">契約締結時に事前に誓約書内に記載の入金口座情報を入力してください。</span>
+                                                <br />
+                                                以降の画面で以下情報が必要になります。
+                                                <ul style="list-style:disc;margin-top:5px;">
+                                                    <li>誓約書締結先の法人名</li>
+                                                    <li>誓約書締結先の法人名フリガナ</li>
+                                                    <li>誓約書の画像</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <!-- SALESFORCE-6797 PRD29 -->
+                                        <p>◆口座名義登録時の注意事項（個人事業主・法人共通）</p>
+                                        <div class="c-box has-icon green">
+                                            <div class="c-box__inner">
+                                                <h4 class="c-box__iconttl">
+                                                    <apex:image url="{!URLFOR($Resource.mpLeadDiyAssets, '/assets/img/common/icon/ico_alert_green.svg')}" style="max-width:70%" alt="" />
+                                                    <span>チェックポイント</span>
+                                                </h4>
+                                                <p>
+                                                    - 必ず<span style="color:#FD5C5C;text-decoration:underline;font-weight:bold;">通帳の表記通り</span>(全角カナ、スペース含む)入力をお願いいたします。
+                                                    <br />※ネット現行の場合、ウェブサイトやアプリにログイン後、「口座情報照会」等のメニューから口座名義を確認できます。
+                                                    <br />※通帳の記載が見切れている場合は口座登録されている正しいカナでご入力ください。
+                                                    <br />
+                                                    <br />
+                                                    - 口座名義は原則、<span style="color:#FD5C5C;">法人の場合、お申込みの</span>
+                                                    <span style="color:#FD5C5C;text-decoration:underline;font-weight:bold;">法人名</span><span style="color:#FD5C5C;">または</span>
+                                                    <span style="color:#FD5C5C;text-decoration:underline;font-weight:bold;">代表者氏名</span>
+                                                    <span style="color:#FD5C5C;">、個人事業主の場合、</span>
+                                                    <span style="color:#FD5C5C;text-decoration:underline;font-weight:bold;">代表者氏名</span>が含まれている必要があります。
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="u-mb-20" style="text-align:center">
+                                            <apex:image url="{!URLFOR($Resource.mpLeadDiyAssets, '/assets/img/mystore/img_DiyStep4_2_passbookNet.png')}" style="max-width:70%" alt="" />
+                                        </div>
+                                    <!-- SALESFORCE-6797 PRD29 -->
+                                    </div>
+                                </div>
+                                    
+                                
+                                <div class="pfFormObject">
+                                    <div class="pfLabel" style="margin-top:10px;">
+                                        <p>
+                                            <label for="NoErrorBankAccount"></label>
+                                             <em class="required" title="必須">*</em>
+                                        </p>
+                                    </div>
+                                    <div class="pfInput">
+                                        <apex:outputLabel >
+                                            <apex:InputField id="NoErrorBankAccount" value="{! mpOpportunity__c.NoErrorBankAccount__c}" required="True"/>口座情報に誤りがないことを確認しました。
+                                            <br /><span style="color:red;">加盟店様ご自身でチェックをつけてください。</span>
+                                        </apex:outputLabel>
+                                    </div>
+                                </div>
+                                
+                                <div class="pfHeadline">
+                                    <span style="font-size:20px;">決済システム利用料</span>
+                                </div>
+                                
+                                <div class="pfFormObject">
+                                    <div class="pfLabel">
+                                        <p>
+                                            <label for=""></label>
+                                        </p>
+                                    </div>
+                                    <div class="pfInput" style="padding-top:5px;">
+                                        <p>
+                                            {! IF(mpOpportunity__c.CommissionPercentage__c == null, 1.98, mpOpportunity__c.CommissionPercentage__c)}%
+                                        </p>
+                                        <p class="lead">
+                                            ※<a href="https://about.paypay.ne.jp/terms/merchant/rule/store/" target="_blank">PayPay加盟店規約　第14条</a>に基づき、上記決済システム利用料を支払う事に同意します。<br />
+                                            ※消費税については、別途規約に記載するものといたします。
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="pfLabel" style="margin-top:10px;">
+                                        <p>
+                                            <em class="required" title="必須">*</em>
+                                        </p>
+                                    </div>
+                                    <div class="pfInput" style="padding-top:5px;">
+                                        <apex:outputLabel >
+                                            <apex:InputField value="{! mpOpportunity__c.CommissionAgreement__c}" required="true" />上記の料率に同意します
+                                        </apex:outputLabel>
+                                    </div>
+                                </div>
+                            </fieldset>
+        
+                            <div id="mod_disclaimers">
+        
+                            </div>
+                            <!--#mod_disclaimers-->
+                            <!-- pfFormObject -->
+                            <div class="pfFormObject">
+                                <div class="pfSubmit">
+                                    <p>
+                                        <apex:commandButton action="{! mpRedirect}" value="次へ" Styleclass="btnView primary" />
+                                    </p>
+                                </div>
+                            </div>
+                            <footer id="footer">
+                                <ul>
+                                    <li>
+                                        <a target="_new" href="https://www.paypay-corp.co.jp/docs/terms/privacy/">プライバシーポリシー</a>
+                                    </li>
+                                </ul>
+                            </footer>
+                        </apex:form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</apex:page>

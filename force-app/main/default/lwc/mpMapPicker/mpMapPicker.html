@@ -1,0 +1,49 @@
+<template>
+    <div class="map-wrapper">
+        <!-- Instructions -->
+        <div class="map-instruction">
+            地図をタップして店舗の位置にピンを立ててください。
+        </div>
+
+        <!-- Search Container -->
+        <div class="search-container">
+            <lightning-input
+                type="search"
+                label="住所検索"
+                placeholder="住所を入力してください"
+                value={searchQuery}
+                onchange={handleSearchInput}>
+            </lightning-input>
+            <lightning-button 
+                variant="brand"
+                label="検索"
+                title="Search"
+                onclick={handleSearch}
+                disabled={isSearchDisabled}
+                class="search-button">
+            </lightning-button>
+        </div>
+        
+        <!-- Error Message -->
+        <template if:true={searchError}>
+            <div class="slds-text-color_error slds-m-bottom_small">
+                {searchError}
+            </div>
+        </template>
+        
+        <!-- Map Container -->
+        <div class="map-container" lwc:dom="manual"></div>
+        
+        <!-- Latitude and Longitude Display -->
+        <div class="coordinates-display">
+            <div class="coordinate-item">
+                <span class="coordinate-label">緯度</span>
+                <span class="coordinate-value">{latitude}</span>
+            </div>
+            <div class="coordinate-item">
+                <span class="coordinate-label">経度</span>
+                <span class="coordinate-value">{longitude}</span>
+            </div>
+        </div>
+    </div>
+</template>

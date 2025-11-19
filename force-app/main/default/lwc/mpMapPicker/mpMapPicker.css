@@ -1,0 +1,45 @@
+.map-wrapper {
+    padding: 1rem;
+}
+
+.map-instruction {
+    margin-bottom: 1rem;
+    color: #514f4d;
+}
+
+.search-container {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    align-items: flex-end;
+}
+
+.search-container lightning-input {
+    flex: 1;
+}
+
+.search-button {
+    min-width: 5rem;
+}
+
+.map-container {
+    margin: 1rem 0;
+    border: 1px solid #d8dde6;
+}
+
+.coordinates-display {
+    margin-top: 1rem;
+    display: flex;
+    gap: 2rem;
+}
+
+.coordinate-item {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.coordinate-label {
+    color: #514f4d;
+    font-weight: bold;
+}
