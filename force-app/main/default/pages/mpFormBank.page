@@ -633,17 +633,29 @@
                                         <script>
                                             // Function to update location inputs from Aura component
                                             window.updateLocationFromAura = function(latitude, longitude) {
-                                                var latInput = document.querySelector('input[id*="ylatitude"]');
-                                                var lngInput = document.querySelector('input[id*="ylongitude"]');
+                                                console.log("updateLocationFromAura called with:", latitude, longitude);
+                                                
+                                                // Try multiple selector strategies
+                                                var latInput = document.getElementById('ylatitude') || 
+                                                              document.querySelector('input[id$="ylatitude"]') ||
+                                                              document.querySelector('input[id*="ylatitude"]');
+                                                var lngInput = document.getElementById('ylongitude') || 
+                                                              document.querySelector('input[id$="ylongitude"]') ||
+                                                              document.querySelector('input[id*="ylongitude"]');
+                                                
+                                                console.log("Found inputs:", latInput, lngInput);
                                                 
                                                 if (latInput && lngInput) {
                                                     latInput.value = latitude;
                                                     lngInput.value = longitude;
+                                                    console.log("Updated input values to:", latInput.value, lngInput.value);
                                                     
                                                     // Trigger change event for validation
                                                     var changeEvent = new Event('change', { bubbles: true });
                                                     latInput.dispatchEvent(changeEvent);
                                                     lngInput.dispatchEvent(changeEvent);
+                                                } else {
+                                                    console.error("Could not find latitude or longitude input fields");
                                                 }
                                             };
                                             
