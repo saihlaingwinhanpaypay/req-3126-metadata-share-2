@@ -143,8 +143,6 @@ export default class MpMapPicker extends LightningElement {
         this.longitude = parseFloat(lng.toFixed(10));
         this.marker.setLatLng([lat, lng]);
         
-        console.log("LWC updateLocation - dispatching event with:", this.latitude, this.longitude);
-        
         // Dispatch event with new coordinates (bubbles and composed to cross shadow DOM)
         this.dispatchEvent(new CustomEvent('locationchange', {
             detail: {

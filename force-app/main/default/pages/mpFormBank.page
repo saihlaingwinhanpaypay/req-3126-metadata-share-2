@@ -647,8 +647,6 @@
                                                         var latitude = mapComponentReference.get("v.latitude");
                                                         var longitude = mapComponentReference.get("v.longitude");
                                                         
-                                                        console.log("Updating VF inputs with:", latitude, longitude);
-                                                        
                                                         // Update input fields
                                                         var latInput = document.querySelector('input[id*="ylatitude"]');
                                                         var lngInput = document.querySelector('input[id*="ylongitude"]');
@@ -656,7 +654,6 @@
                                                         if (latInput && lngInput) {
                                                             latInput.value = latitude;
                                                             lngInput.value = longitude;
-                                                            console.log("Successfully updated input values");
                                                             
                                                             // Trigger change event for validation
                                                             var changeEvent = new Event('change', { bubbles: true });
@@ -681,8 +678,6 @@
                                                 var latValue = initialLat && initialLat !== '' ? parseFloat(initialLat) : null;
                                                 var lngValue = initialLng && initialLng !== '' ? parseFloat(initialLng) : null;
                                                 
-                                                console.log("Initial coordinates from fields:", latValue, lngValue);
-                                                
                                                 $Lightning.createComponent("c:mpMapPickerWrapper",
                                                     {
                                                         "latitude": latValue,
@@ -690,7 +685,6 @@
                                                     },
                                                     "leafletMapContainer",
                                                     function(cmp) {
-                                                        console.log("Leaflet Map component loaded successfully");
                                                         // Store component reference
                                                         mapComponentReference = cmp;
                                                         
