@@ -1,3 +1,17 @@
+/**
+ * mpMapPicker - Interactive Map Component using Leaflet
+ * 
+ * Third-Party Libraries:
+ * - Leaflet (BSD-2-Clause License)
+ *   Copyright (c) 2010-2023, Vladimir Agafonkin
+ *   Copyright (c) 2010-2011, CloudMade
+ *   https://github.com/Leaflet/Leaflet/blob/main/LICENSE
+ * 
+ * - OpenStreetMap (ODbL License)
+ *   © OpenStreetMap contributors
+ *   https://www.openstreetmap.org/copyright
+ * 
+ */
 import { LightningElement, track, api } from 'lwc';
 import { loadStyle, loadScript } from 'lightning/platformResourceLoader';
 import LEAFLET_FILES from '@salesforce/resourceUrl/leafletjs';
@@ -114,8 +128,9 @@ export default class MpMapPicker extends LightningElement {
         });
 
         // Add tile layer with optimization settings
+        // Leaflet: Copyright (c) 2010-2023, Vladimir Agafonkin, CloudMade (BSD-2-Clause License)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            attribution: '<a href="https://leafletjs.com" title="A JavaScript library for interactive maps">Leaflet</a> | &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             maxZoom: maxZoom,
             minZoom: minZoom,
             // Tile caching and loading optimization
