@@ -7,14 +7,15 @@ export default class MpMapPicker extends LightningElement {
     @api longitude;
     
     @track searchQuery = '';
-    @track isSearching = false;
     @track searchError = '';
+    @track isSearching = false;
     
     map;
     marker;
     mapInitialized = false;
     leafletInitialized = false;
     useCurrentLocation = false;
+    lastSearchTime = 0; // Track last search time for rate limiting
 
     get isSearchDisabled() {
         return !this.searchQuery.trim() || this.isSearching;
@@ -95,20 +96,39 @@ export default class MpMapPicker extends LightningElement {
             shadowUrl: LEAFLET_FILES + '/leafletjs/marker-shadow.png'
         });
 
-        // Initialize Leaflet map with appropriate zoom level
-        const maxZoom = 19;
-        // Use lower zoom if showing current location, higher zoom for specific coordinates
-        const initialZoom = this.useCurrentLocation ? 15 : maxZoom;
+        // Initialize Leaflet map with optimized zoom levels
+        // Reduced maxZoom to minimize tile requests (OSM recommendation)
+        const maxZoom = 18;
+        const minZoom = 5;
+        const initialZoom = this.useCurrentLocation ? 15 : 17;
+        
         this.map = L.map(mapDiv, {
             center: [this.latitude, this.longitude],
             zoom: initialZoom,
-            maxZoom: maxZoom
+            maxZoom: maxZoom,
+            minZoom: minZoom,
+            // Reduce unnecessary tile reloads
+            zoomSnap: 1,
+            zoomDelta: 1,
+            wheelPxPerZoomLevel: 120
         });
 
-        // Add OpenStreetMap tiles with same maxZoom
+        // Add tile layer with optimization settings
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: maxZoom
+            maxZoom: maxZoom,
+            minZoom: minZoom,
+            // Tile caching and loading optimization
+            maxNativeZoom: 18,
+            keepBuffer: 2,              // Keep 2 rows/cols of tiles loaded around viewport
+            updateWhenIdle: true,       // Update tiles only when map stops moving
+            updateWhenZooming: false,   // Don't update tiles during zoom animation
+            // Proper referrer policy for privacy
+            referrerPolicy: 'no-referrer-when-downgrade',
+            // Subdomains for load distribution across OSM servers
+            subdomains: ['a', 'b', 'c'],
+            // Browser caching
+            crossOrigin: true
         }).addTo(this.map);
 
         // Add marker and show it at default coordinates immediately
@@ -198,12 +218,31 @@ export default class MpMapPicker extends LightningElement {
             return;
         }
 
+        // Rate limiting: Enforce 1 request per second minimum
+        const now = Date.now();
+        const timeSinceLastSearch = now - this.lastSearchTime;
+        if (timeSinceLastSearch < 1000) {
+            this.searchError = 'しばらくしてからもう一度お試しください。';
+            return;
+        }
+        this.lastSearchTime = now;
+
         this.isSearching = true;
         this.searchError = '';
 
         try {
+            // Nominatim Usage Policy: https://operations.osmfoundation.org/policies/nominatim/
+            // - Limited to 1 request per second
+            // - Proper User-Agent required
+            // - Consider using your own Nominatim instance for production
             const response = await fetch(
-                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(this.searchQuery)}&limit=1&countrycodes=jp`
+                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(this.searchQuery)}&limit=1&countrycodes=jp`,
+                {
+                    headers: {
+                        // Required: Identify your application
+                        'User-Agent': 'PayPay-MapPicker/1.0'
+                    }
+                }
             );
 
             if (!response.ok) {
