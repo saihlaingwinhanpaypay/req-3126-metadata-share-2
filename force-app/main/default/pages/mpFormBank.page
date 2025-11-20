@@ -631,33 +631,45 @@
                                         </p>
                                         
                                         <script>
-                                            // Function to update location inputs from Aura component
-                                            window.updateLocationFromAura = function(latitude, longitude) {
-                                                console.log("updateLocationFromAura called with:", latitude, longitude);
+                                            // Store component reference globally
+                                            var mapComponentReference = null;
+                                            var lastKnownUpdate = 0;
+                                            
+                                            // Function to update input fields from component attributes
+                                            function updateInputFieldsFromComponent() {
+                                                if (!mapComponentReference) return;
                                                 
-                                                // Try multiple selector strategies
-                                                var latInput = document.getElementById('ylatitude') || 
-                                                              document.querySelector('input[id$="ylatitude"]') ||
-                                                              document.querySelector('input[id*="ylatitude"]');
-                                                var lngInput = document.getElementById('ylongitude') || 
-                                                              document.querySelector('input[id$="ylongitude"]') ||
-                                                              document.querySelector('input[id*="ylongitude"]');
-                                                
-                                                console.log("Found inputs:", latInput, lngInput);
-                                                
-                                                if (latInput && lngInput) {
-                                                    latInput.value = latitude;
-                                                    lngInput.value = longitude;
-                                                    console.log("Updated input values to:", latInput.value, lngInput.value);
+                                                try {
+                                                    var currentUpdate = mapComponentReference.get("v.lastUpdate");
                                                     
-                                                    // Trigger change event for validation
-                                                    var changeEvent = new Event('change', { bubbles: true });
-                                                    latInput.dispatchEvent(changeEvent);
-                                                    lngInput.dispatchEvent(changeEvent);
-                                                } else {
-                                                    console.error("Could not find latitude or longitude input fields");
+                                                    // Only update if coordinates have changed
+                                                    if (currentUpdate && currentUpdate !== lastKnownUpdate) {
+                                                        var latitude = mapComponentReference.get("v.latitude");
+                                                        var longitude = mapComponentReference.get("v.longitude");
+                                                        
+                                                        console.log("Updating VF inputs with:", latitude, longitude);
+                                                        
+                                                        // Update input fields
+                                                        var latInput = document.querySelector('input[id*="ylatitude"]');
+                                                        var lngInput = document.querySelector('input[id*="ylongitude"]');
+                                                        
+                                                        if (latInput && lngInput) {
+                                                            latInput.value = latitude;
+                                                            lngInput.value = longitude;
+                                                            console.log("Successfully updated input values");
+                                                            
+                                                            // Trigger change event for validation
+                                                            var changeEvent = new Event('change', { bubbles: true });
+                                                            latInput.dispatchEvent(changeEvent);
+                                                            lngInput.dispatchEvent(changeEvent);
+                                                        }
+                                                        
+                                                        lastKnownUpdate = currentUpdate;
+                                                    }
+                                                } catch(e) {
+                                                    console.error("Error updating inputs:", e);
                                                 }
-                                            };
+                                            }
                                             
                                             // Initialize Leaflet Map component
                                             $Lightning.use("c:mpMapPickerApp", function() {
@@ -678,7 +690,12 @@
                                                     },
                                                     "leafletMapContainer",
                                                     function(cmp) {
-                                                        console.log("Leaflet Map component loaded successfully with coordinates:", latValue, lngValue);
+                                                        console.log("Leaflet Map component loaded successfully");
+                                                        // Store component reference
+                                                        mapComponentReference = cmp;
+                                                        
+                                                        // Poll for attribute changes every 500ms
+                                                        setInterval(updateInputFieldsFromComponent, 500);
                                                     }
                                                 );
                                             });
