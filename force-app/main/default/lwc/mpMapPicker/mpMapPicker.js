@@ -116,9 +116,9 @@ export default class MpMapPicker extends LightningElement {
         });
 
         // Initialize Leaflet map with optimized zoom levels (OSM recommendation)
-        const maxZoom = 18;
+        const maxZoom = 19;
         const minZoom = 5;
-        const initialZoom = this.useCurrentLocation ? 15 : 17;
+        const initialZoom = this.useCurrentLocation ? 16 : 18;
         
         this.map = L.map(mapDiv, {
             center: [this.latitude, this.longitude],
@@ -138,7 +138,7 @@ export default class MpMapPicker extends LightningElement {
             maxZoom: maxZoom,
             minZoom: minZoom,
             // Tile caching and loading optimization
-            maxNativeZoom: 18,
+            maxNativeZoom: 19,
             keepBuffer: 2,              // Keep 2 rows/cols of tiles loaded around viewport
             updateWhenIdle: true,       // Update tiles only when map stops moving
             updateWhenZooming: false,   // Don't update tiles during zoom animation
