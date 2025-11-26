@@ -2000,7 +2000,7 @@
                                     </div>
                                     <div class="pfInput">
                                         <p>
-                                            <div id="mapContainer" style="width:700px; height:480px; max-width:100%;"></div>
+                                            <div id="mapContainer" style="width:700px; max-width:100%;"></div>
                                         </p>
                                         <p>
                                             緯度<span style="margin-left: 1em;"></span><apex:outputField value="{! mpOpportunity__c.OgglatitudeInput__c}"/>
