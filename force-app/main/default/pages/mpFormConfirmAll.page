@@ -1,0 +1,2337 @@
+<apex:page showheader="false" sidebar="false" standardController="mpOpportunity__c" docType="html-5.0" extensions="mpForm"
+    action="{! redirectcheck}">
+
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta http-equiv="X-Ua-Compatible" content="IE=edge" />
+        <meta http-equiv="Content-Style-Type" content="text/css" />
+        <meta http-equiv="Content-Script-Type" content="text/javascript" />
+        <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+        <meta http-equiv="Pragma" content="no-cache" />
+        <title>お客様情報の入力</title>
+        <meta name="title" content="お客様情報の入力" />
+        <meta name="robots" content="index, follow" />
+        <meta name="description" content="" />
+        <meta name="keywords" content="" />
+        <meta name="language" content="ja" />
+        <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no"
+        />
+        <meta name="format-detection" content="telephone=no" />
+        <apex:stylesheet value="{!URLFOR($Resource.wakamatsu_css, 'wakamatsu_css/common-c718c5bdfc83a159e88c89dcee5d1b94.css')}"
+        />
+        <apex:stylesheet value="{!URLFOR($Resource.wakamatsu_css, 'wakamatsu_css/styles-183122847b144827c18138cf25aace71.css')}"
+        />
+        <apex:stylesheet value="{!URLFOR($Resource.wakamatsu_css, 'wakamatsu_css/emg-60a37f2cf1dad087ee8e85cea8de6670.css')}" />
+        
+        <script src="{!URLFOR($Resource.jQuery_3_7_1)}"></script>
+        <script src='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.js'></script>
+        <link href='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.css' rel='stylesheet' />
+        <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-language/v0.10.1/mapbox-gl-language.js'></script>
+        <style type="text/css">
+            #masthead h1 a {
+                background-image: url(https://s.yimg.jp/c/logo/f/2.0/wallet_r_34.png);
+                width: 218px;
+                height: 34px;
+            }
+
+            @media all and (max-width: 568px) {
+                #masthead {
+                    background: #0065CB;
+                    background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #599bde), color-stop(0.49, #005ebd), color-stop(0.50, #0050a0), color-stop(1, #0061c2));
+                    background: -moz-linear-gradient(top, #599bde 0, #0061c2 49%, #0050a0 50%, #005ebd 100%);
+                    background: linear-gradient(top, #599bde 0, #0061c2 49%, #0050a0 50%, #005ebd 100%);
+                }
+                #masthead h1 a {
+                    background-image: url(https://s.yimg.jp/c/logo/s/2.0/wallet_w_22.png);
+                    width: 120px;
+                }
+            }
+
+            @media all and (max-width: 568px) and (-webkit-min-device-pixel-ratio: 2) {
+                #masthead h1 a {
+                    background-image: url(https://s.yimg.jp/c/logo/s/2.0/wallet_w_22_2x.png);
+                    -webkit-background-size: 120px 22px;
+                }
+            }
+            a:link { color: #0000ff; }
+            a:visited { color: #000080; }
+            a:hover { color: #0000ff; }
+            a:active { color: #0000ff; }
+        </style>
+        <script>
+            $(function(){
+                var lat = "{! mpOpportunity__c.OgglatitudeInput__c}";
+                var lng = "{! mpOpportunity__c.OgglongitudeInput__c}";
+                var zoom = 19;
+
+                mapboxgl.accessToken = 'pk.eyJ1IjoicGF5cGF5IiwiYSI6ImNrN2N6M2IyczFqenozZm51ZnpkYTdkeDMifQ.4_5A29W-U_Pm8WuBoDGaqw';
+                var map = new mapboxgl.Map({
+                container: 'map',
+                    style: 'mapbox://styles/mapbox/streets-v10',
+                    center: [lng, lat],
+                    zoom: zoom
+                });
+                map.addControl(new MapboxLanguage({
+                    defaultLanguage: 'ja'
+                }));
+                var nav = new mapboxgl.NavigationControl();
+                map.addControl(nav, 'top-left');
+                var marker = new mapboxgl.Marker()
+                    .setLngLat([lng, lat])
+                    .addTo(map);
+            });
+            // 表示内容を画面表示時に制御
+            $(function(){
+                var myStorePlan = document.querySelector('[id$="myStorePlan"]');
+                if (document.querySelector('[id$="kiyakudoui__c"]').value == 'true'){
+                    myStorePlan.textContent = '各種規約に同意し、ライトプランに申し込む';
+                } else {
+                    myStorePlan.textContent = '制限プランに申し込む';
+                }
+            });
+        </script>
+    </head>
+
+    <div id="wrapper">
+
+        <div id="contents">
+            <div id="yjContentsHeader"></div>
+            <div id="yjContentsBody">
+                <span class="yjGuid">
+                    <a name="yjContentsStart" id="yjContentsStart"></a>
+                    <img src="https://s.yimg.jp/yui/jp/tmpl/1.1.0/clear.gif" alt="ここから本文です" width="1" height="1" />
+                </span>
+                <div id="yjMain">
+                    <div class="yjMainGrid">
+                        <div class="yjms-page-title">
+                            <h1>PayPay　申し込み情報入力</h1>
+                        </div>
+                        <div id="mod_explanation">
+                            <p>
+                                入力内容をご確認のうえ、「申し込む」ボタンを押してください。
+                            </p>
+                        </div>
+                        <apex:form StyleClass="pfFormStyle">
+                            <fieldset style="border: 1px solid #333333; padding: 10px; margin: 10px">
+                                <dev class="revisionArea">
+                                    <div class="pfHeadline">
+                                        <p>
+                                            <span style="font-size:24px; color:black">お申込者情報</span>
+                                            <div style="float:inline-end" >
+                                                <apex:outputPanel >
+                                                    <input type="button" name="back" id="back" value="修正" class="btnView" onclick="location.href='/apex/mpFormInfo?id={! mpOpportunity__c.Id}'"
+                                                    />
+                                                </apex:outputPanel>
+                                            </div>
+                                        </p>
+                                    </div>
+                                    <div class="pfHeadline">
+                                        <span style="font-size:20px;">お客様情報</span>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">氏名</label>
+
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.FormCustomerName__c}" html-placeholder="例： 矢風　太郎" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">氏名（フリガナ）</label>
+
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.FormCustomerKanaName__c}" html-placeholder="例： ヤフウ　タロウ" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">部署名</label>
+
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.FormCustomerDepartment__c}" html-placeholder="例： 総務部" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">電話番号</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.FormCustomerPhone__c}" html-placeholder="例： 01-2345-6789" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">メールアドレス</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.FormCustomerEmail__c}" html-placeholder="例： yahootaro@yahoo.co.jp" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">生年月日</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.FormCustomerBirthday__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <apex:outputPanel layout="none" rendered="{! mpOpportunity__c.CorporateForm__c == '個人事業主'}">  
+                                        <div class="pfFormObject">
+                                            <div class="pfLabel">
+                                                <p>
+                                                    <label for="">国籍</label>
+                                                </p>
+                                            </div>
+                                            <div class="pfInput">
+                                                <apex:outputPanel layout="none" rendered="{! mpOpportunity__c.RepreNationality__c != ''}">
+                                                    <p style="padding-top:5px;">
+                                                        <apex:outputText value="{! mpOpportunity__c.RepreNationality__c}" />
+                                                    </p>
+                                                </apex:outputPanel>
+                                                <apex:outputPanel layout="none" rendered="{! mpOpportunity__c.RepreNationality__c == ''}">
+                                                    <p style="padding-top:5px;">日本国籍</p>
+                                                </apex:outputPanel>
+                                            </div>
+                                        </div>
+                                        <apex:outputPanel layout="none" rendered="{! mpOpportunity__c.RepreNationality__c != ''}">
+                                            <div class="pfFormObject">
+                                                <div class="pfLabel">
+                                                    <p>
+                                                        <label for="">氏名（アルファベット表記）</label>
+                                                    </p>
+                                                </div>
+                                                <div class="pfInput">
+                                                    <p style="padding-top:5px;">
+                                                        <apex:outputText value="{! mpOpportunity__c.RepreNameInRomanLetters__c}" />
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </apex:outputPanel>
+                                    </apex:outputPanel>
+                                    <div class="pfHeadline">
+                                        <span style="font-size:20px;">契約種別</span>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">契約種別</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.AgreementType__c}" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfHeadline">
+                                        <span style="font-size:20px;">法人、個人事業主情報</span>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">事業形態</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.CorporateForm__c}" id="CorporateForm__c"/>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">事業形態 確認方法</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.CorporationConfirmation__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <apex:outputPanel rendered="{!mpOpportunity__c.CorporationConfirmation__c=='法人番号'}">
+                                        <div class="pfFormObject">
+                                            <div class="pfLabel">
+                                                <p>
+                                                    <label for="">法人番号</label>
+                                                </p>
+                                            </div>
+                                            <div class="pfInput">
+                                                <p style="padding-top:5px;">
+                                                    <apex:outputField value="{! mpOpportunity__c.CorporateNumber__c}" html-placeholder="" />
+                                                </p>
+                                                <p class="lead">法人番号が正しく設定されているか確認ください。
+                                                    <a href="http://www.houjin-bangou.nta.go.jp/henkorireki-johoto.html?selHouzinNo={! mpOpportunity__c.CorporateNumber__c}"
+                                                        target="_blank">法人番号確認</a>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel rendered="{!mpOpportunity__c.CorporationConfirmation__c=='本人確認書類'}">
+                                        <div class="pfFormObject">
+                                            <div class="pfLabel">
+                                                <p>
+                                                    <label for=""></label>
+                                                </p>
+                                            </div>
+                                            <div class="pfInput">
+                                                <p style="padding-top:5px;">
+                                                    <apex:outputField value="{! mpOpportunity__c.ConfirmationDocument__c}" html-placeholder="" />&nbsp;本人確認書類を確認させていただきました。
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </apex:outputPanel>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <apex:outputLabel rendered="{!mpOpportunity__c.CorporateForm__c == '法人'}">法人名</apex:outputLabel>
+                                                <apex:outputLabel rendered="{!mpOpportunity__c.CorporateForm__c != '法人'}">個人事業主名</apex:outputLabel>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.Name}" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <apex:outputLabel rendered="{!mpOpportunity__c.CorporateForm__c == '法人'}">法人名（フリガナ）</apex:outputLabel>
+                                                <apex:outputLabel rendered="{!mpOpportunity__c.CorporateForm__c != '法人'}">個人事業主名（フリガナ）</apex:outputLabel>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.NameKana__c}" html-placeholder="例：ヤフーカブシキガイシャ" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">電話番号</label>
+
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.Phone__c}" html-placeholder="例： 01-2345-6789" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfHeadline">
+                                        <span style="font-size:20px;">法人、個人事業主住所</span>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">郵便番号</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.PostalCode__c}" html-placeholder="例： 102-8282" />
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">都道府県</label>
+
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.Prefectures__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">市区町村</label>
+
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.City__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">市区町村（フリガナ）</label>
+
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.CityKana__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">町名</label>
+
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.TownName__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">町名（フリガナ）</label>
+
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.TownNameKana__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">番地</label>
+
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.FormSectionStreetNumber__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">アパート、マンション名、部屋番号など</label>
+
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.BuildingNumber__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">アパート、マンション名、部屋番号など（フリガナ）</label>
+
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.FormBuildingNumber__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfHeadline">
+                                        <span style="font-size:20px;">代表者情報</span>
+                                    </div>
+
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">氏名</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.RepresentativeName__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">氏名（フリガナ）</label>
+
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.RepresentativeKanaName__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">生年月日</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.FormBirthday__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <apex:outputPanel layout="none" rendered="{! mpOpportunity__c.CorporateForm__c == '法人'}">
+                                        <apex:outputPanel layout="none" rendered="{! mpOpportunity__c.RepreNationality__c != ''}">
+                                            <div class="pfFormObject">
+                                                <div class="pfLabel">
+                                                    <p>
+                                                        <label for="">国籍</label>
+                                                    </p>
+                                                </div>
+                                                <div class="pfInput">
+                                                    <p style="padding-top:5px;">
+                                                        <apex:outputText value="{! mpOpportunity__c.RepreNationality__c}" />
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="pfFormObject">
+                                                <div class="pfLabel">
+                                                    <p>
+                                                        <label for="">氏名（アルファベット表記）</label>
+                                                    </p>
+                                                </div>
+                                                <div class="pfInput">
+                                                    <p style="padding-top:5px;">
+                                                        <apex:outputText value="{! mpOpportunity__c.RepreNameInRomanLetters__c}" />
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </apex:outputPanel>
+                                    </apex:outputPanel>
+                                    <div class="form-group" style="{!IF(mpOpportunity__c.CorporateForm__c != '法人', 'display:none;' , '')}">
+                                        <div class="pfFormObject">
+                                            <div class="pfLabel">
+                                                <p>
+                                                    <label for="">郵便番号</label>
+                                                </p>
+                                            </div>
+                                            <div class="pfInput">
+                                                <p style="padding-top:5px;">
+                                                    <apex:outputField value="{! mpOpportunity__c.ReprePostalCode__c}" html-placeholder="" />
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="pfFormObject">
+                                            <div class="pfLabel">
+                                                <p>
+                                                    <label for="">都道府県</label>
+                                                </p>
+                                            </div>
+                                            <div class="pfInput">
+                                                <p style="padding-top:5px;">
+                                                    <apex:outputField value="{! mpOpportunity__c.ReprePrefectures__c}" html-placeholder="" />
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="pfFormObject">
+                                            <div class="pfLabel">
+                                                <p>
+                                                    <label for="">市区町村</label>
+                                                </p>
+                                            </div>
+                                            <div class="pfInput">
+                                                <p style="padding-top:5px;">
+                                                    <apex:outputField value="{! mpOpportunity__c.RepreCity__c}" html-placeholder="" />
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="pfFormObject">
+                                            <div class="pfLabel">
+                                                <p>
+                                                    <label for="">町名</label>
+                                                </p>
+                                            </div>
+                                            <div class="pfInput">
+                                                <p style="padding-top:5px;">
+                                                    <apex:outputField value="{! mpOpportunity__c.RepreTownName__c}" html-placeholder="" />
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="pfFormObject">
+                                            <div class="pfLabel">
+                                                <p>
+                                                    <label for="">番地</label>
+                                                </p>
+                                            </div>
+                                            <div class="pfInput">
+                                                <p style="padding-top:5px;">
+                                                    <apex:outputField value="{! mpOpportunity__c.RepreSectionStreetNumber__c}" html-placeholder="" />
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="pfFormObject">
+                                            <div class="pfLabel">
+                                                <p>
+                                                    <label for="">アパート、マンション名、部屋番号など</label>
+                                                </p>
+                                            </div>
+                                            <div class="pfInput">
+                                                <p style="padding-top:5px;">
+                                                    <apex:outputField value="{! mpOpportunity__c.RepreBuildingNumber__c}" html-placeholder="" />
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="pfHeadline">
+                                        <span style="font-size:20px;">加盟店名</span>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">屋号名</label>
+
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.FormStoreName__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">屋号名（フリガナ）</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.FormStoreKanaName__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">店舗名</label>
+
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.ShopName__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">店舗名（フリガナ）</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.ShopNameKana__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfHeadline">
+                                        <span style="font-size:20px;">加盟店住所</span>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">法人、個人事業主住所と同一</label>
+
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.FormSameAddress__c}" html-placeholder="" />&nbsp;法人住所と同一
+                                            </p>
+                                            <p class="lead">法人、個人事業主住所と異なる</p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">郵便番号</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.FormNoCorpPostalCode__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">都道府県</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.FormNoCorpPrefectures__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">市区町村</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.FormNoCorpCity__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">市区町村（フリガナ）</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.FormNoCorpCityKana__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">町名</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.FormNoCorpTownName__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">町名（フリガナ）</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.FormNoCorpTownNameKana__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">番地</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.FormNoCorpFormSectionStreetNumber__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">アパート、マンション名、部屋番号など</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.FormNoCorpBuildingNumber__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">アパート、マンション名、部屋番号など（フリガナ）</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.FormNoCorpFormBuildingNumber__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfHeadline">
+                                        <span style="font-size:20px;">ホームページのURL</span>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">URL</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.URL__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfHeadline">
+                                        <span style="font-size:20px;">販売形態、お取り扱い商品</span>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">イベント案件の場合はレ点チェック</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.TempUsageFlag__c}"/>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <apex:outputText rendered="{! mpOpportunity__c.TempUsageFlag__c}">
+                                        <div class="pfFormObject">
+                                            <div class="pfLabel">
+                                                <p>
+                                                    <label for="">イベント開始日</label>
+                                                </p>
+                                            </div>
+                                            <div class="pfInput">
+                                                <p style="padding-top:5px;">
+                                                    <apex:outputField value="{! mpOpportunity__c.TempStratDay__c}"/>
+                                                </p>
+                                            </div>
+                                        </div>               
+                                        <div class="pfFormObject">
+                                            <div class="pfLabel">
+                                                <p>
+                                                    <label for="">イベント終了日</label>
+                                                </p>
+                                            </div>
+                                            <div class="pfInput">
+                                                <p style="padding-top:5px;">
+                                                    <apex:outputField value="{! mpOpportunity__c.TempEndDay__c}"/>
+                                                </p>
+                                            </div>
+                                        </div>   
+                                    </apex:outputText>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">販売形態</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.FormStoreSales__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <!-- お取り扱い商品を入力画面に統一 -->
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">お取り扱い商品</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.MerchandiseClassification__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for=""></label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.ProductName__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">お取り扱い商品_詳細</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.ProductNameETC__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <apex:outputText rendered="{!mpOpportunity__c.AgreementOfWalletOnlyPrecaution__c}">
+                                        <div class="pfFormObject">
+                                            <div class="pfLabel">
+                                                <p>
+                                                    <label for="">支払い方法に関する注意事項</label>
+                                                    <em class="required" title="必須">*</em>
+                                                </p>
+                                            </div>
+                                            <div class="pfInput">
+                                                <apex:outputField value="{! mpOpportunity__c.AgreementOfWalletOnlyPrecaution__c}" id="AgreementOfWalletOnlyPrecaution" />&nbsp;支払い方法に関して、以下の注意事項を確認しました。
+                                                <div style="font-size:90%;margin-top:10px;">
+                                                    <apex:outputText rendered="{!isMoneyOnlyProduct}">
+                                                        <div>
+                                                            【マネー限定】がついている商材については「PayPayマネー」のみ取扱いが可能となります。
+                                                            <br /> 「PayPayマネーライト」「PayPayポイント」「PayPayポイントライト」「クレジットカード」および「クレジット（旧あと払い）」の取扱いはできませんのでご注意下さい。
+
+                                                        </div>
+                                                    </apex:outputText>
+                                                    <apex:outputText rendered="{!isBalanceOnlyProduct}">
+                                                        <div>
+                                                            【残高限定】がついている商材については「PayPay残高」のみ取扱いが可能となります。
+                                                            <br /> 「クレジットカード」「クレジット（旧あと払い）」の取扱いはできませんのでご注意下さい。
+                                                            <br /> ※PayPay残高の詳細については
+                                                            <a href="https://paypay.ne.jp/help/c0048/" target="_blank">コチラ</a>をご確認ください。
+                                                        </div>
+                                                    </apex:outputText>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </apex:outputText>
+                                    <apex:outputText rendered="{!mpOpportunity__c.AgreementOfSpecifiedContinuousServices__c}">
+                                        <div class="pfFormObject">
+                                            <div class="pfLabel">
+                                                <p>
+                                                    <label for="">特定継続的役務に関する注意事項</label>
+                                                    <em class="required" title="必須">*</em>
+                                                </p>
+                                            </div>
+                                            <div class="pfInput">
+                                                <apex:outputField value="{! mpOpportunity__c.AgreementOfSpecifiedContinuousServices__c}" id="AgreementOfSpecifiedContinuousServices"
+                                                />&nbsp;特定継続的役務に関して、以下の注意事項を確認しました。
+                                                <ul style="font-size:90%;list-style:disc;margin-top:10px;">
+                                                    <li>商品／サービス等に関するPayPayユーザーからのクレームやトラブル等については、加盟店様の責任と費用において解決を図ること。</li>
+                                                    <li>特定商取引に関する法律等に基づき、PayPayユーザーに書面交付を行うこと。また、当該書面等によりクーリング・オフや解約方法等について説明すること。</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </apex:outputText>
+                                    <div class="pfHeadline"><span style="font-size:20px;">許認可等の確認・書類アップロード</span><br /><span style="font-size:12px;">許認可等の確認事項を選択し、必要書類をアップロードしてください。</span></div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">許認可等の確認</label>
+                                                
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                            <p><apex:OutputField value="{! mpOpportunity__c.Licensing_Antique__c}" />&nbsp;中古品、リサイクル品、古物を扱っています。</p>
+                                            <p><apex:OutputField value="{! mpOpportunity__c.Licensing_TreatmentPlace__c}" />&nbsp;施術所（鍼灸院、治療院、接骨院・整骨院）に該当します。 </p>
+                                            <p><apex:OutputField value="{! mpOpportunity__c.Licensing_TravelAgency__c}" />&nbsp;旅行代理店に該当します。 </p>
+                                            <p><apex:OutputField value="{! mpOpportunity__c.Licensing_Consultation__c}" />&nbsp;医療相談、法律相談を行っています。 </p>
+                                            <p><apex:OutputField value="{! mpOpportunity__c.Licensing_DrivingAgency__c}" />&nbsp;運転代行業に該当します。 </p>
+                                            <p><apex:OutputField value="{! mpOpportunity__c.Licensing_SpecifiedContinuousServices__c}" />&nbsp;特定継続的役務（学習塾/家庭教師/語学教室/エステ/美容医療/パソコン教室/結婚相手紹介）に該当します。 </p>
+                                            <p><apex:OutputField value="{! mpOpportunity__c.Licensing_PublicGambling__c}" /> 公営ギャンブルに該当します。</p>
+                                            <p><apex:OutputField value="{! mpOpportunity__c.Licensing_InsuranceBusiness__c}" />&nbsp;保険業（保険代理店）に該当します。</p>   
+                                            <p><apex:OutputField value="{! mpOpportunity__c.Licensing_TicketSales__c}" />&nbsp;興行チケット販売業に該当します。 </p> 
+                                            <p><apex:OutputField value="{! mpOpportunity__c.Licensing_PrepaidCard__c}" />&nbsp;商品券・プリペイドカード・交通乗車券販売業に該当します。 </p>                                                                                              
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <apex:outputText rendered="{! mpOpportunity__c.estimatedOpeningDate__c != ''}">
+                                    <div class="pfHeadline">
+                                        <span style="font-size:20px;">開店有無</span>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">開店予定日</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.estimatedOpeningDate__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">連絡事項</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.qdditionalRemittanceMatters__c}" html-placeholder="" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="pfHeadline">
+                                            <span style="font-size:20px;">開店前店舗資料画像1</span>
+                                        </div>
+                                        <div class="pfFormObject">
+                                            <span class="glyphicon glyphicon-ok" style="{! IF(beforeOpenPicTaken1, '', 'display:none;')}">写真登録済みです</span>
+                                            <br />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="pfHeadline">
+                                            <span style="font-size:20px;">開店前店舗資料画像2</span>
+                                        </div>
+                                        <div class="pfFormObject">
+                                            <span class="glyphicon glyphicon-ok" style="{! IF(beforeOpenPicTaken2, '', 'display:none;')}">写真登録済みです</span>
+                                            <br />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="pfHeadline">
+                                            <span style="font-size:20px;">開店前店舗資料画像3</span>
+                                        </div>
+                                        <div class="pfFormObject">
+                                            <span class="glyphicon glyphicon-ok" style="{! IF(beforeOpenPicTaken3, '', 'display:none;')}">写真登録済みです</span>
+                                            <br />
+                                        </div>
+                                    </div>                          
+                                    <div>
+                                        <div class="pfHeadline">
+                                            <span style="font-size:20px;">開店前店舗資料画像4</span>
+                                        </div>
+                                        <div class="pfFormObject">
+                                            <span class="glyphicon glyphicon-ok" style="{! IF(beforeOpenPicTaken4, '', 'display:none;')}">写真登録済みです</span>
+                                            <br />
+                                        </div>
+                                    </div>                                       
+                                    </apex:outputText>
+                                    
+                                    <apex:outputText rendered="{! mpOpportunity__c.estimatedOpeningDate__c == ''}">
+                                    <div>
+                                        <div class="pfHeadline">
+                                            <span style="font-size:20px;">店舗外観画像</span>
+                                        </div>
+                                        <div class="pfFormObject">
+                                            <span class="glyphicon glyphicon-ok" style="{! IF(OutPicTaken, '', 'display:none;')}">写真登録済みです</span>
+                                            <br />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div class="pfHeadline">
+                                            <span style="font-size:20px;">店舗内観画像</span>
+                                        </div>
+                                        <div class="pfFormObject">
+                                            <span class="glyphicon glyphicon-ok" style="{! IF(InPicTaken, '', 'display:none;')}">写真登録済みです</span>
+                                            <br />
+                                        </div>
+                                    </div>
+                                    </apex:outputText>
+                                    <div class="pfHeadline">
+                                        <span style="font-size:20px;">規約等</span>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">行政処分及び消費者契約法違反による敗訴判決の有無</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+
+                                            <apex:outputField value="{! mpOpportunity__c.CommercialViolationHistory__c}" html-placeholder="" />
+                                            <span style="padding-top:5px;">&nbsp;当社（当店）は直近5年間に、特定商取引法による行政処分または消費者契約法違反を理由とする敗訴判決を受けたことはありません。</span>
+
+                                        </div>
+                                    </div>
+
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">PayPay加盟店規約等</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+
+                                            <apex:outputField value="{! mpOpportunity__c.YJPayChangeAgreement__c}" html-placeholder="" />
+                                            <span style="padding-top:5px;">&nbsp;PayPay加盟店規約に同意します</span>
+                                            <p class="lead">
+                                                <a href="https://about.paypay.ne.jp/terms/merchant/rule/store/" target="_blank">PayPay加盟店規約</a>
+                                                <br />
+                                                <a href="https://about.paypay.ne.jp/terms/?merchant-offline" target="_blank">PayPay加盟店ガイドライン</a>
+                                                <br />
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <apex:outputText rendered="{!OR(NewMerchantCampSetting['isOpen'] == '1', mpOpportunity__c.PayPayNewMerchantCamp__c)}">
+                                        <div class="pfFormObject">
+                                            <div class="pfLabel">
+                                                <p>
+                                                    <label for="">キャンペーン</label>
+                                                </p>
+                                            </div>
+                                            <div class="pfInput">
+                                                <apex:outputField value="{! mpOpportunity__c.PayPayNewMerchantCamp__c}" />
+                                                <span style="padding-top:5px;">&nbsp;「{!NewMerchantCampSetting['name']}」の適用条件に同意し、申込をします。</span>
+                                                <p class="lead">
+                                                    ※キャンペーン詳細は
+                                                    <a href="{!NewMerchantCampSetting['url']}" target="_blank">こちら</a>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </apex:outputText>
+                                </dev>
+                            </fieldset>
+                            <!-- 実質的支配者-->
+                            <apex:outputPanel rendered="{!mpOpportunity__c.CorporateForm__c == '法人'}">
+                                <fieldset style="border: 1px solid #333333; padding: 10px; margin: 10px" >
+                                    <apex:variable var="q" value="{! mpBOController.questionsContainer}" />
+                                    <div class="pfHeadline">
+                                        <p>
+                                            <span style="font-size:24px; color:black">実質的支配者情報</span>
+                                            <div style="float:inline-end">
+                                                <apex:outputPanel >
+                                                    <input type="button" name="back" id="backBeneficialOwner" value="修正" class="btnView" onclick="location.href='/apex/mpFormInfoBeneficialOwner?id={! mpOpportunity__c.Id}'"
+                                                    />
+                                                </apex:outputPanel>
+                                            </div>
+                                        </p>
+                                    </div>
+
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">お申込みされる法人について</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.ListingClassification__c}" html-placeholder=""  rendered="{!mpOpportunity__c.CorporateForm__c == '法人'}"/>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">実質的支配者</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputPanel layout="none" rendered="{! OR(q.listingClass == '1', q.listingClass == '2', q.listingClass == '3')}">
+                                                    申告不要
+                                                </apex:outputPanel>
+                                                <apex:outputPanel layout="none" rendered="{! !OR(q.listingClass == '1', q.listingClass == '2', q.listingClass == '3')}">
+                                                    <apex:outputText value="{! IF(q.owner1.isDisplay, 'いる', '代表者のみ')}" />
+                                                </apex:outputPanel>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <!-- 実質的支配者1 -->
+                                    <apex:outputPanel layout="none" rendered="{! q.owner1.isDisplay}">
+                                        <apex:variable var="owner" value="{! q.owner1}" />
+                                        <div class="pfHeadline">
+                                            <p style="font-size:20px; color:black">実質的支配者１</p>
+                                        </div>
+                                        <!-- 自然人 -->
+                                        <apex:outputPanel layout="none" rendered="{! !owner.isCompany}">
+                                            <apex:outputPanel layout="none" rendered="{! owner.FirstName.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">氏名</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.FirstName.value + ' ' + owner.LastName.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+
+                                            <apex:outputPanel layout="none" rendered="{! owner.KanaFirstName.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">氏名（フリガナ）</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.KanaFirstName.value + ' ' + owner.KanaLastName.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+
+                                            <apex:outputPanel layout="none" rendered="{! owner.BirthdayYear.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">生年月日</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.BirthdayYear.value + '/' + owner.BirthdayMonth.value + '/' + owner.BirthdayDay.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+
+                                            <apex:outputPanel layout="none" rendered="{! owner.Country.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">居住国</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.Country.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label>郵便番号</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.ForeignPostalCode.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label>その他住所</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.ForeignAddress.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+
+                                            <apex:outputPanel layout="none" rendered="{! owner.Prefecture.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">自宅住所_都道府県</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.Prefecture.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+
+                                            <apex:outputPanel layout="none" rendered="{! owner.City.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">自宅住所_市区町村以降</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.City.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                            
+                                            <apex:outputPanel layout="none" rendered="{! owner.Nationality.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label>国籍</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.Nationality.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label>氏名（アルファベット表記）</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.NameInRomanLetters.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+
+                                        </apex:outputPanel>
+                                        <!-- 法人 -->
+                                        <apex:outputPanel layout="none" rendered="{! owner.isCompany}">
+                                            <apex:outputPanel layout="none" rendered="{! owner.Name.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">法人名</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.Name.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+
+                                            <apex:outputPanel layout="none" rendered="{! owner.KanaName.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">法人名（カナ）</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.KanaName.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+
+                                            <apex:outputPanel layout="none" rendered="{! owner.Country.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">所在国</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.Country.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label>郵便番号</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.ForeignPostalCode.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label>その他住所</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.ForeignAddress.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+
+                                            <apex:outputPanel layout="none" rendered="{! owner.Prefecture.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">都道府県</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.Prefecture.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+
+                                            <apex:outputPanel layout="none" rendered="{! owner.City.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">市区町村以降</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.City.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+
+                                            <apex:outputPanel layout="none" rendered="{! owner.CompanyNumber.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">法人番号</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.CompanyNumber.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                        </apex:outputPanel>
+                                    </apex:outputPanel>
+                                    <!-- 実質的支配者２ -->
+                                    <apex:outputPanel layout="none" rendered="{! q.owner2.isDisplay}">
+                                        <apex:variable var="owner" value="{! q.owner2}" />
+                                        <div class="pfHeadline">
+                                            <p style="font-size:20px; color:black">実質的支配者２</p>
+                                        </div>
+                                        <!-- 自然人 -->
+                                        <apex:outputPanel layout="none" rendered="{! !owner.isCompany}">
+                                            <apex:outputPanel layout="none" rendered="{! owner.FirstName.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">氏名</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.FirstName.value + ' ' + owner.LastName.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{! owner.KanaFirstName.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">氏名（フリガナ）</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.KanaFirstName.value + ' ' + owner.KanaLastName.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{! owner.BirthdayYear.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">生年月日</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.BirthdayYear.value + '/' + owner.BirthdayMonth.value + '/' + owner.BirthdayDay.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{! owner.Country.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">居住国</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.Country.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label>郵便番号</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.ForeignPostalCode.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label>その他住所</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.ForeignAddress.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{! owner.Prefecture.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">自宅住所_都道府県</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.Prefecture.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{! owner.City.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">自宅住所_市区町村以降</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.City.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{! owner.Nationality.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label>国籍</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.Nationality.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label>氏名（アルファベット表記）</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.NameInRomanLetters.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                        </apex:outputPanel>
+                                        <!-- 法人 -->
+                                        <apex:outputPanel layout="none" rendered="{! owner.isCompany}">
+                                            <apex:outputPanel layout="none" rendered="{! owner.Name.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">法人名</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.Name.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{! owner.KanaName.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">法人名（カナ）</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.KanaName.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{! owner.Country.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">所在国</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.Country.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label>郵便番号</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.ForeignPostalCode.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label>その他住所</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.ForeignAddress.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{! owner.Prefecture.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">都道府県</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.Prefecture.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{! owner.City.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">市区町村以降</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.City.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{! owner.CompanyNumber.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">法人番号</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.CompanyNumber.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                        </apex:outputPanel>
+                                    </apex:outputPanel>
+                                    <!--実質的支配者３-->
+                                    <apex:outputPanel layout="none" rendered="{! q.owner3.isDisplay}">
+                                        <apex:variable var="owner" value="{! q.owner3}" />
+                                        <div class="pfHeadline">
+                                            <p style="font-size:20px; color:black">実質的支配者３</p>
+                                        </div>
+                                        <!-- 自然人 -->
+                                        <apex:outputPanel layout="none" rendered="{! !owner.isCompany}">
+                                            <apex:outputPanel layout="none" rendered="{! owner.FirstName.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">氏名</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.FirstName.value + ' ' + owner.LastName.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{! owner.KanaFirstName.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">氏名（フリガナ）</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.KanaFirstName.value + ' ' + owner.KanaLastName.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{! owner.BirthdayYear.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">生年月日</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.BirthdayYear.value + '/' + owner.BirthdayMonth.value + '/' + owner.BirthdayDay.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{! owner.Country.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">居住国</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.Country.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label>郵便番号</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.ForeignPostalCode.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label>その他住所</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.ForeignAddress.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{! owner.Prefecture.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">自宅住所_都道府県</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.Prefecture.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{! owner.City.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">自宅住所_市区町村以降</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.City.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{! owner.Nationality.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label>国籍</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.Nationality.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label>氏名（アルファベット表記）</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.NameInRomanLetters.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                        </apex:outputPanel>
+                                        <!-- 法人 -->
+                                        <apex:outputPanel layout="none" rendered="{! owner.isCompany}">
+                                            <apex:outputPanel layout="none" rendered="{! owner.Name.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">法人名</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.Name.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{! owner.KanaName.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">法人名（カナ）</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.KanaName.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{! owner.Country.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">所在国</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.Country.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label>郵便番号</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.ForeignPostalCode.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label>その他住所</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.ForeignAddress.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{! owner.Prefecture.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">都道府県</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.Prefecture.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{! owner.City.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">市区町村以降</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.City.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel layout="none" rendered="{! owner.CompanyNumber.isDisplay}">
+                                                <div class="pfFormObject">
+                                                    <div class="pfLabel">
+                                                        <p>
+                                                            <label for="">法人番号</label>
+                                                        </p>
+                                                    </div>
+                                                    <div class="pfInput">
+                                                        <p style="padding-top:5px;">
+                                                            <apex:outputText value="{! owner.CompanyNumber.value}" />
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </apex:outputPanel>
+                                        </apex:outputPanel>
+                                    </apex:outputPanel>
+                                </fieldset>
+                            </apex:outputPanel>
+                            <!-- END 実質的支配者 -->
+                            <fieldset style="border: 1px solid #333333; padding: 10px; margin: 10px">
+                                <div class="pfHeadline">
+                                    <p>
+                                        <span style="font-size:24px; color:black">口座情報</span>
+                                        <div style="float:inline-end">
+                                            <apex:outputPanel >
+                                                    <input type="button" name="backBank" id="back" value="修正" class="btnView" onclick="location.href='/apex/mpFormBank?id={! mpOpportunity__c.Id}'"
+                                                    />
+                                            </apex:outputPanel>
+                                        </div>
+                                    </p>
+                                </div>
+                                <div class="pfHeadline"><span style="font-size:20px;">振込サイクル</span></div>
+                                <div class="pfFormObject">
+                                    <div class="pfLabel">
+                                        <p>
+                                            <label for="">振込サイクルについて</label>
+                                        </p>
+                                    </div>
+                                    <apex:outputPanel rendered="{! mpOpportunity__c.PayCyclePattern__c == 'エンプラ'}">
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputText value="{! mpOpportunity__c.PayCycle__c}" styleclass="form-control" />
+                                            </p>
+                                        </div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel rendered="{! mpOpportunity__c.PayCyclePattern__c != 'エンプラ'}">
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                {!IF(mpOpportunity__c.EarlyPayoutCycle__c, '翌日※/翌々営業日入金', '月１回')}<br />
+                                                <apex:outputText rendered="{!mpOpportunity__c.EarlyPayoutCycle__c}">
+                                                    ※翌日入金はPayPay銀行の口座が対象です。<br />
+                                                </apex:outputText>
+                                                <br />
+                                                <apex:outputField value="{! mpOpportunity__c.EarlyPayoutCycle__c}" />早期振込サービス（自動）規約に同意し、早期振込サービス（自動）に申込む。<br />
+                                            </p>
+                                        </div>
+                                    </apex:outputPanel>
+                                </div>
+                                <apex:outputPanel rendered="{!IF(AND(mpOpportunity__c.FormStoreSales__c != '屋台・機内・社内・移動販売', mpOpportunity__c.MerchandiseClassification__c != '交通') ,true,false)}">                                
+                                <div class="pfHeadline"><span style="font-size:20px;">地図表示</span></div>
+                                <div class="pfFormObject">
+                                    <div class="pfLabel">
+                                        <p>
+                                            <label for="">地図掲載開始予定日</label>
+                                            
+                                        </p>
+                                    </div>
+                                    <div class="pfInput">
+                                        <p style="padding-top:5px;">
+                                            <apex:outputField value="{! mpOpportunity__c.MapDisplayTime__c}" html-placeholder="" />
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="pfFormObject">
+                                    <div class="pfLabel">
+                                        <p>
+                                            <label for="">地図表示位置</label>
+                                            
+                                        </p>
+                                    </div>
+                                    <div class="pfInput">
+                                        <p>
+                                            <div id="map" style="width:700px; height:480px; max-width:100%;"></div>
+                                        </p>
+                                        <p>
+                                            緯度<span style="margin-left: 1em;"></span><apex:outputField value="{! mpOpportunity__c.OgglatitudeInput__c}"/>
+                                        </p>
+                                        <p>
+                                            経度<span style="margin-left: 1em;"></span><apex:outputField value="{! mpOpportunity__c.OgglongitudeInput__c}"/>
+                                        </p>
+                                    </div>
+                                </div>
+                                </apex:outputPanel>    
+                                <div class="pfHeadline"><span style="font-size:20px;">金融機関</span></div>                                
+                                <div class="pfFormObject">
+                                    <div class="pfLabel">
+                                        <p>
+                                            <label for="">金融機関名</label>
+                                            
+                                        </p>
+                                    </div>
+                                    <div class="pfInput">
+                                        <p style="padding-top:5px;">
+                                        <apex:outputField value="{! mpOpportunity__c.FinancialInstitutionName__c}" html-placeholder="" />
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="pfFormObject">
+                                    <div class="pfLabel">
+                                        <p>
+                                            <label for="">支店名</label>
+                                            
+                                        </p>
+                                    </div>
+                                    <div class="pfInput">
+                                        <p style="padding-top:5px;">
+                                        <apex:outputField value="{! mpOpportunity__c.BranchName__c}" html-placeholder="" />
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="pfFormObject">
+                                    <div class="pfLabel">
+                                        <p>
+                                            <label for="">口座種別</label>
+                                            
+                                        </p>
+                                    </div>
+                                    <div class="pfInput">
+                                        <p style="padding-top:5px;">
+                                        <apex:outputField value="{! mpOpportunity__c.AccountType__c}" html-placeholder="" />
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="pfFormObject">
+                                    <div class="pfLabel">
+                                        <p>
+                                            <label for="">口座番号</label>
+                                            
+                                        </p>
+                                    </div>
+                                    <div class="pfInput">
+                                        <p style="padding-top:5px;">
+                                        <apex:outputField value="{! mpOpportunity__c.AccountNumber__c}" html-placeholder="例： 1234567" />
+                                        </p>
+                                    </div>
+                                </div>  
+                                <div class="pfFormObject">
+                                    <div class="pfLabel">
+                                        <p>
+                                            <label for="">口座名義</label>
+                                            
+                                        </p>
+                                    </div>
+                                    <div class="pfInput">
+                                        <p style="padding-top:5px;">
+                                        <apex:outputField value="{! mpOpportunity__c.AccountHolder__c}" html-placeholder="例： ヤフー（カ" />
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="pfHeadline">
+                                    <span style="font-size:20px;">決済システム利用料</span>
+                                </div>
+                                <div class="pfFormObject">
+                                    <div class="pfLabel">
+                                        <p>
+                                            <label for="">決済システム利用料</label>
+                                        </p>
+                                    </div>
+                                    <div class="pfInput" style="padding-top:5px;">
+                                        <p>
+                                            {! IF(mpOpportunity__c.CommissionPercentage__c == null, 1.98, mpOpportunity__c.CommissionPercentage__c)}%
+                                        </p>
+                                        <p class="lead">
+                                            ※<a href="https://about.paypay.ne.jp/terms/merchant/rule/store/" target="_blank">PayPay加盟店規約　第14条</a>に基づき、上記決済システム利用料を支払う事に同意します。<br />
+                                            ※消費税については、別途規約に記載するものといたします。
+                                        </p>
+                                    </div>
+                                        <div class="pfLabel" style="margin-top:10px;">
+                                        </div>
+                                        <div class="pfInput" style="padding-top:5px;">
+                                            <p><apex:OutputField value="{! mpOpportunity__c.CommissionAgreement__c}" />&nbsp;上記の料率に同意します</p>
+                                        </div>    
+                                </div>
+                            </fieldset>
+                            <apex:outputPanel rendered="{!mpOpportunity__c.AgreementType__c == '自治体契約' || mpOpportunity__c.DepositAccountType__c == '一括入金業務委託契約' || mpOpportunity__c.DepositAccountType__c == '誓約書契約'}">
+                                <fieldset style="border: 1px solid #333333; padding: 10px; margin: 10px">
+                                    <div class="pfHeadline">
+                                        <p>
+                                            <span style="font-size:24px; color:black">自治体・一括入金業務委託・誓約書契約情報</span>
+                                            <div style="float:inline-end">
+                                                <apex:outputPanel >
+                                                    <input type="button" name="back" id="backAgreement" value="修正" class="btnView" onclick="location.href='/apex/mpFormAdditionalInfo?id={! mpOpportunity__c.Id}'"
+                                                    />
+                                                </apex:outputPanel>
+                                            </div>
+                                        </p>
+                                    </div>
+                                    <apex:outputPanel rendered="{!mpOpportunity__c.AgreementType__c == '自治体契約'}">
+                                        <div class="pfHeadline">
+                                            <span style="font-size:20px;">【自治体契約】に関する追加情報</span>
+                                        </div>
+
+                                        <div class="pfFormObject">
+                                            <div class="pfLabel">
+                                                <p>
+                                                    <label for="">決裁番号</label>
+                                                </p>
+                                            </div>
+                                            <div class="pfInput">
+                                                <p style="padding-top:5px;">
+                                                    <apex:outputField value="{! mpOpportunity__c.LocalGovernmentApprovalNumber__c}" />
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel rendered="{!mpOpportunity__c.DepositAccountType__c == '一括入金業務委託契約'}">
+                                    <div class="pfHeadline">
+                                        <span style="font-size:20px;">【一括入金業務委託契約】に関する追加情報</span>
+                                    </div>
+
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">決裁番号</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.BulkDepositApprovalNumber__c}" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">業務委託先 事業者名</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.BulkDepositCompanyName__c}" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">業務委託先 事業者名カナ</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.BulkDepositCompanyNameKana__c}" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel rendered="{!mpOpportunity__c.DepositAccountType__c == '誓約書契約'}">
+                                    <div class="pfHeadline">
+                                        <span style="font-size:20px;">【誓約書契約】に関する追加情報</span>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">誓約書締結先 事業者名</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.PledgeCompanyName__c}" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">誓約書締結先 事業者名カナ</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.PledgeCompanyNameKana__c}" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                    </apex:outputPanel>
+                                </fieldset>
+                            </apex:outputPanel>
+                            <fieldset style="border: 1px solid #333333; padding: 10px; margin: 10px">   
+                                <div class="pfHeadline">
+                                    <p>
+                                        <span style="font-size:24px; color:black">決済情報</span>
+                                        <div style="float:inline-end">
+                                            <apex:outputPanel >
+                                                <input type="button" name="back" id="backAlipay" value="修正" class="btnView" onclick="location.href='/apex/mpAlipayForm?id={! mpOpportunity__c.Id}'"
+                                                />
+                                            </apex:outputPanel>
+                                        </div>
+                                    </p>
+                                </div>
+                                <apex:outputpanel rendered="{!!isAlipayNotCoveredProduct}">
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">アリペイプラスサービス決済</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.AlipaySettlement__c}" />
+                                                アリペイプラスサービス決済の利用を希望し、アリペイプラス利用特約に同意いたします
+                                            </p>
+                                        </div>
+                                    </div>
+                                </apex:outputpanel>
+                                <apex:outputpanel rendered="{!IF(contains(mpOpportunity__c.ProductName__c, 'マネー限定'), False, True)}">
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">HIVEX決済</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.hivexEnable__c}" />
+                                                HIVEX決済の利用を希望し、 HIVEX利用特約にも同意いたします
+                                            </p>
+                                        </div>
+                                    </div>
+                                </apex:outputpanel>
+                                <div class="pfFormObject">
+                                    <div class="pfLabel">
+                                        <p>
+                                            <label for="">自治体等への加盟店情報連携の同意</label>
+                                        </p>
+                                    </div>
+                                    <div class="pfInput">
+                                        <p style="padding-top:5px;">
+                                            <apex:outputField value="{! mpOpportunity__c.InfoAgreementCheck__c}" />
+                                            自治体等への加盟店情報連携に同意し、自治体キャンペーンに参加します
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="pfFormObject">
+                                    <div class="pfLabel">
+                                        <p>
+                                            <label for="">PayPay商品券利用情報提供に関する同意</label>
+                                        </p>
+                                    </div>
+                                    <div class="pfInput">
+                                        <p style="padding-top:5px;">
+                                            <apex:outputField value="{! mpOpportunity__c.PayPayGiftVoucherAgreement__c}" />
+                                            自治体等およびふるさと納税ポータルサイト運営会社へのPayPay商品券利用情報提供に同意し、PayPay商品券を活用した事業に参加します
+                                        </p>
+                                    </div>
+                                </div>
+                                <apex:outputpanel rendered="{! !isSkipProductForLightPlan}">                               
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">PayPayマイストアプラン選択</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;" id="myStorePlan"></p><!-- ここにマイストアプランの選択内容が表示される -->
+                                            <apex:inputHidden value="{! mpOpportunity__c.mystore_kiyakudoui__c}" id="kiyakudoui__c"></apex:inputHidden>
+                                        </div>
+                                    </div>
+                                    <div class="pfFormObject">
+                                        <div class="pfLabel">
+                                            <p>
+                                                <label for="">ライトプラン適用日</label>
+                                            </p>
+                                        </div>
+                                        <div class="pfInput">
+                                            <p style="padding-top:5px;">
+                                                <apex:outputField value="{! mpOpportunity__c.AsynchronousOnboarding__c}" />
+                                            </p>
+                                        </div>
+                                    </div>
+                                </apex:outputpanel>
+                                <div class="pfFormObject">
+                                    <div class="pfLabel">
+                                        <p>加盟店紹介キャンペーン</p>
+                                    </div>
+                                    <div class="pfInput">
+                                        <p style="padding-top:5px;">
+                                            <apex:outputField value="{! mpOpportunity__c.CampaignExplained__c}" />
+                                            説明しました(任意)
+                                        </p>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <div id="mod_disclaimers">
+                            </div>
+                            <div class="pfFormObject" style="text-align:center;padding-top:20px;">
+                                <div class="pfSubmit" style="margin:0 auto;">
+                                    <p>・申込完了ボタンを押下すると、入力内容でお申し込みを受け付けます。 入力内容に誤りがないか確認のうえボタンを押下ください。
+                                        <br />・内容に誤りがある場合は修正ボタンを押下し登録内容を修正してください。
+                                    </p>
+                                    <p> 
+                                        <apex:commandButton action="{! mpRedirect}" value="申込完了" Styleclass="btnView primary" />
+                                    </p>
+                                </div>
+                            </div>
+                            <footer id="footer">
+                                <ul>
+                                    <li>
+                                        <a target="_new" href="https://www.paypay-corp.co.jp/docs/terms/privacy/">プライバシーポリシー</a>
+                                    </li>
+                                </ul>
+                            </footer>
+                        </apex:form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</apex:page>

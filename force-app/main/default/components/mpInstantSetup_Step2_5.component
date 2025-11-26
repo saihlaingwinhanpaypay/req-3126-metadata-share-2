@@ -1,0 +1,381 @@
+<apex:component allowDML="true">
+<apex:attribute name="mpOpportunity__c" description="mpOpportunity__c" type="mpOpportunity__c" required="true"/>
+<apex:attribute name="mpInstantSetup" description="mpInstantSetup" type="mpInstantSetup" required="true"/>
+<script>
+$(function(){
+    if ($("[id$=':ea_errorDateHelpMessage_br']").text() != "") {
+        $(window).scrollTop(0);
+    }
+    _switchProductName();
+});
+    
+function _switchProductName() {
+                                       
+    $('.limitedWrap').hide();
+    $('.SpecifiedContinuousServicesWrap').hide();
+    $('.balanceOnly').hide();
+    $('.moneyOnly').hide();
+    var check1 = $('input[id$=":AgreementOfWalletOnlyPrecaution"]');
+    var check2 = $('input[id$=":AgreementOfSpecifiedContinuousServices"]');
+    var hivexCheckbox = $('input[id$=":InputCheckboxHIVEX"]');
+    var alipayCheckbox = $('input[id$=":InputCheckboxAlipay"]');
+    var isAlipayNotCoveredProduct = [];
+    <apex:repeat value="{!mpInstantSetup.AlipayProductName}" var="p">
+        isAlipayNotCoveredProduct.push('{!p}');  
+	</apex:repeat>
+    check1.prop('required', false);
+    check2.prop('required', false);
+    if ($('select[id$=":InputProductName"]').val().indexOf('残高限定')> 0) {
+        $('.limitedWrap').show();
+        $('.balanceOnly').show();
+        check1.prop('required', true);
+    }
+    if ($('select[id$=":InputProductName"]').val().indexOf('マネー限定')> 0) {
+        $('.limitedWrap').show();
+        $('.moneyOnly').show();
+        $('.HivexpayCheckboxPanel').hide();
+        check1.prop('required', true);
+        hivexCheckbox.prop("checked", false);
+    }else{
+        $('.HivexpayCheckboxPanel').show();
+    }
+    if ($('select[id$=":InputProductName"]').val().indexOf('特定継続的役務')> 0) {
+        $('.SpecifiedContinuousServicesWrap').show();
+        check2.prop('required', true);
+    }
+    if (isAlipayNotCoveredProduct.includes($('select[id$=":InputProductName"]').val())){
+        $('.AlipayCheckboxPanel').hide();
+    } else {
+        $('.AlipayCheckboxPanel').show();
+     }
+
+}
+    
+    window.onload = (event) => {
+        var formStoreSales = "{! mpOpportunity__c.MerchandiseClassification__c}";
+        var champCheckbox = $('input[id$=":champCheckbox"]');
+
+        var hivexCheckbox = $('input[id$=":InputCheckboxHIVEX"]');
+        var alipayCheckbox = $('input[id$=":InputCheckboxAlipay"]');
+        
+        if(formStoreSales==""){
+        champCheckbox.prop("checked", true);
+        alipayCheckbox.prop("checked", true);
+        hivexCheckbox.prop("checked", true)
+        }
+    };
+  
+</script>
+<apex:form >
+
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                販売形態、お取り扱い商品
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                <div class="row">
+                    <!-- 左列の入力 -->
+                    <div class="col-xs-12">  
+                        <div class="form-group">
+                            <label for="InputFormStoreSales">販売形態</label>
+                            <apex:inputField value="{! mpOpportunity__c.FormStoreSales__c}" styleclass="form-control" id="InputFormStoreSales" style="max-width:350px;" required="True" />
+                        </div>
+                    </div>
+                    
+                    <div class="col-xs-12">
+                        <div class="form-group">
+                            <label for="InputProductNameETC">提供サービス&nbsp;詳細</label>
+                            <apex:inputField value="{! mpOpportunity__c.ProductNameETC__c}" styleclass="form-control" id="InputProductNameETC" html-placeholder=""
+                                             style="height:100px;width:100%;min-width:100%;max-width:100%;" required="True" />
+                        </div>
+                    </div>
+                    <div class="col-xs-12">
+                        <div class="well" style="font-size:90%;">
+                            <p class="sectionBenefit__list__detail__txt__note">＜ご注意＞&nbsp;PayPay決済をご利用の商品・サービスをもれなくご記入ください。<br/>
+                                OK事例（商材粒度が適切なもの）：飲食代金、雑貨販売、美容院施術代、エステサービスなど<br/>
+                                NG事例（商材粒度が不適切なもの）：小売、デジコン、消費者サービスなど</p>
+                        </div>
+                    </div>
+                   
+                    <div class="col-xs-12">
+                        <div class="form-group">
+                            <label for="InputMerchandiseClassification">お取り扱い商品&nbsp;カテゴリー</label>
+                            <apex:inputField value="{! mpOpportunity__c.MerchandiseClassification__c}" styleclass="form-control" id="InputMerchandiseClassification" style="max-width:350px;" required="True" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="form-group">
+                            <label for="InputProductName">お取り扱い商品&nbsp;詳細</label>
+                            <apex:inputField value="{! mpOpportunity__c.ProductName__c}" styleclass="form-control" id="InputProductName" required="True" onchange="_switchProductName();"/>
+                        </div>
+
+                        <div class="form-group limitedWrap" style="display:none;">
+                          <div class="panel panel-default">
+                              <div class="panel-body">
+                                  <div class="form-group">
+                                    <div class="checkbox" style="margin:0px;">
+                                        <apex:outputLabel >
+                                            <div style="display:inline-block">
+                                            <apex:InputField value="{! mpOpportunity__c.AgreementOfWalletOnlyPrecaution__c}" style="margin-top:5px;" id="AgreementOfWalletOnlyPrecaution" />
+                                            </div><span style="font-size:14px;">支払い方法に関して、以下の注意事項を確認しました。</span>
+                                        </apex:outputLabel>
+                                      </div>
+                                  </div>
+                                  <div style="font-size:80%;display:none;" class="moneyOnly">
+                                    【マネー限定】がついている商材については「PayPayマネー」のみ取扱いが可能となります。<br />
+                                    「PayPayマネーライト」「PayPayポイント」「PayPayポイントライト」「クレジットカード」および「クレジット（旧あと払い）」の取扱いはできませんのでご注意下さい。
+                                  </div>
+                                  <div style="font-size:80%;display:none;" class="balanceOnly">
+                                    【残高限定】がついている商材については「PayPay残高」のみ取扱いが可能となります。<br />
+                                    「クレジットカード」「クレジット（旧あと払い）」の取扱いはできませんのでご注意下さい。<br />
+                                    ※PayPay残高の詳細については<a href="https://paypay.ne.jp/help/c0048/" target="_blank">コチラ</a>をご確認下さい。
+                                  </div>
+                              </div>
+                          </div>
+                        </div>
+                        <div class="form-group SpecifiedContinuousServicesWrap" style="display:none;">
+                          <div class="panel panel-default">
+                              <div class="panel-body">
+                                  <div class="form-group">
+                                    <div class="checkbox" style="margin:0px;">
+                                        <apex:outputLabel >
+                                            <div style="display:inline-block">
+                                            <apex:InputField value="{! mpOpportunity__c.AgreementOfSpecifiedContinuousServices__c}" style="margin-top:5px;" id="AgreementOfSpecifiedContinuousServices" />
+                                            </div><span style="font-size:14px;">特定継続的役務に関して、以下の注意事項を確認しました。</span>
+                                        </apex:outputLabel>
+                                      </div>
+                                  </div>
+                                  <ul style="font-size:80%;list-style:disc;">
+                                    <li>商品／サービス等に関するPayPayユーザーからのクレームやトラブル等については、加盟店様の責任と費用において解決を図ること。</li>
+                                    <li>特定商取引に関する法律等に基づき、PayPayユーザーに書面交付を行うこと。また、当該書面等によりクーリング・オフや解約方法等について説明すること。</li>
+                                  </ul>
+                              </div>
+                          </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="well">
+                            <p class="sectionBenefit__list__detail__txt__note">- 複数の商材をお取り扱いの場合には最もふさわしいものを選択してください。</p>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+         <!-- panel panel-default -->
+     	<apex:outputText >        
+         <div class="panel panel-default AlipayCheckboxPanel">             
+             <div class="panel-heading">
+                アリペイプラスサービス決済
+             </div>
+             <div class="panel-body">
+                 <div class="container-fluid">
+                     <div class="row">
+                         <div class="col-xs-12 col-md-12">
+                             <apex:outputText >
+                             <div class="form-group AlipayCheckboxOutLine">
+                                 <apex:outputLabel >
+                                     <apex:InputCheckbox id="InputCheckboxAlipay" style="margin-top:5px;" value="{! mpOpportunity__c.AlipaySettlement__c}" selected="true"/>
+                                     アリペイプラスサービス決済の利用を希望し、アリペイプラス利用特約に同意いたします。
+                                 </apex:outputLabel>
+                                 <p style="font-size:12px; color:#333; margin-left:24px;">
+                                     <a href="https://about.paypay.ne.jp/terms/merchant/rule/alipay/" target="_blank">アリペイプラス利用特約</a><br />
+                                 </p>
+                             </div>
+                             </apex:outputText>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+         </div>
+         </apex:outputText>
+         <!-- /panel panel-default -->
+
+        <!-- panel panel-default -->
+        <div class="panel panel-default HivexpayCheckboxPanel">
+            <div class="panel-heading">
+                HIVEX決済
+            </div>
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-xs-12 col-md-12">
+                            <apex:outputText >
+                            <div class="form-group HivexpayCheckboxOutLine">
+                                <apex:outputLabel >
+                                    <apex:InputCheckbox id="InputCheckboxHIVEX" style="margin-top:5px;" value="{! mpOpportunity__c.hivexEnable__c}" selected="true"/>
+                                    HIVEX決済の利用を希望し、 HIVEX利用特約にも同意いたします 
+                                </apex:outputLabel>
+                                <p style="font-size:12px; color:#333; margin-left:24px;">
+                                    <a href="https://about.paypay.ne.jp/terms/merchant/rule/hivex/" target="_blank">HIVEX利用特約</a><br /> 
+                                </p>
+                            </div>
+                            </apex:outputText>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /panel panel-default -->
+
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                決済システム利用料
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                <div class="row">
+                    <!-- 左列の入力 -->
+                    <div class="col-xs-12 col-md-12">  
+                        <div class="form-group">
+                            {! IF(mpOpportunity__c.CommissionPercentage__c == null, 1.98, mpOpportunity__c.CommissionPercentage__c)}%
+                            
+                            <div class="checkbox">
+                                <apex:outputLabel >
+                                    <apex:InputField value="{! mpOpportunity__c.CommissionAgreement__c}" style="margin-top:5px;" required="True"  />
+                                    上記の料率に同意します。
+                                </apex:outputLabel>
+                                <p style="font-size:12px; color:#333; margin-left:24px;">
+                                    ※<a href="https://about.paypay.ne.jp/terms/merchant/rule/store/" target="_blank">PayPay加盟店規約　第14条</a>に基づき、上記決済システム利用料を支払う事に同意します。<br />
+                                    ※消費税については、別途規約に記載するものといたします。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+    
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                法令等
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                <div class="row">
+                    <!-- 左列の入力 -->
+                    <div class="col-xs-12 col-md-12">  
+                        <div class="form-group">
+                        <div class="checkbox">
+                            <apex:outputLabel >
+                                <apex:InputField style="margin-top:5px;" value="{! mpOpportunity__c.CommercialViolationHistory__c}" />
+                                当社（当店）は直近5年間に、特定商取引法による行政処分または消費者契約法違反を理由とする敗訴判決を受けたことはありません。 
+                            </apex:outputLabel>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                規約等
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                <div class="row">
+                    <!-- 左列の入力 -->
+                    <div class="col-xs-12 col-md-12">  
+                        <div class="form-group">
+                        <div class="checkbox">
+                                <apex:outputLabel >
+                                <apex:InputField value="{! mpOpportunity__c.YJPayChangeAgreement__c}" style="margin-top:5px;" required="True"  />
+                                以下の規約等に同意します。
+                                </apex:outputLabel>
+                        </div>
+                        <div class="checkbox">
+                            <p style="font-size:12px; color:#333; margin-left:24px;">
+                                <a href="https://about.paypay.ne.jp/terms/merchant/rule/store/" target="_blank">PayPay加盟店規約</a><br /> 
+                                <a href="https://about.paypay.ne.jp/terms/?merchant-offline" target="_blank">PayPay加盟店ガイドライン</a><br /> 
+                                <!--<apex:outputText rendered="{! !mpOpportunity__c.CommissionTargetFlag__c}">
+                                    ※2021年10月1日に決済システム利用料改定に伴いPayPay加盟店規約を改定します。<br />
+                                    （2021年10月1日以降の<a href="https://about.paypay.ne.jp/docs/terms/paypay-merchant-terms-20211001/#terms" target="_blank">PayPay加盟店規約</a>）。<br />
+                                    改定に伴い2021年10月1日から決済システム利用料が以降有料となります。（2021年9月30日まで無料）<br />
+                                    詳細は<a href="https://paypay.ne.jp/merchant/info202110/" target="_blank">こちら</a><br />
+                                    ・PayPay決済が発生しない場合、上記のPayPay決済システム利用料は発生しません。
+                                </apex:outputText>-->
+                            </p>
+                        </div>
+       
+                        </div>
+                    </div>
+
+                </div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+
+        <apex:outputText rendered="{!mpInstantSetup.NewMerchantCampSetting['isOpen'] == '1'}">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                キャンペーン
+            </div>
+            <div class="panel-body">
+                <div class="container-fluid">
+                <div class="row">
+                    <div class="col-xs-12 col-md-12">  
+                        <div class="form-group">
+                            <div class="checkbox">
+                                <apex:outputLabel >
+                                    <apex:InputField value="{! mpOpportunity__c.PayPayNewMerchantCamp__c}" style="margin-top:5px;" id="champCheckbox" />
+                                    「{!mpInstantSetup.NewMerchantCampSetting['name']}」の適用条件に同意し、申込をします。
+                                </apex:outputLabel>
+                            </div>
+                            <div class="checkbox">
+                                <p style="font-size:12px; color:#333; margin-left:24px;">
+                                    ※キャンペーン詳細は<a href="{!mpInstantSetup.NewMerchantCampSetting['url']}" target="_blank">こちら</a>
+                                </p>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+        </apex:outputText>
+
+
+            <div  class="row" style="padding-top:40px;">
+                <p class="text-center col-xs-12 col-xs-6">
+                    <apex:commandButton action="{! mpInstantSetup.step2back}" value="戻る" Styleclass="btnView primary" styleClass="submitBtn btn btn-lg" reRender="includeBody" >
+                        <!-- 2021/10 FSA追加対応 -->
+                        <!-- value3→value4 -->
+                        <apex:param name="backIndex" value="4" />
+                    </apex:commandButton>
+                </p>
+    
+                <p class="text-center  col-xs-12 col-xs-6">
+                    <apex:commandButton action="{! mpInstantSetup.step2}" value="次へ" Styleclass="btnView primary" styleClass="submitBtn btn-primary btn-lg" />
+                </p>
+            </div>
+
+</apex:form>
+
+</apex:component>

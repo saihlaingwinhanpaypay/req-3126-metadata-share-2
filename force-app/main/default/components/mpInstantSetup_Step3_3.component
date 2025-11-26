@@ -1,0 +1,199 @@
+<apex:component allowDML="true">
+<apex:attribute name="mpOpportunity__c" description="mpOpportunity__c" type="mpOpportunity__c" required="true"/>
+<apex:attribute name="mpInstantSetup" description="mpInstantSetup" type="mpInstantSetup" required="true"/>
+<style>
+#map input[type=text].mapboxgl-ctrl-geocoder--input{
+    padding:6px 35px;
+}
+#map li{
+    margin: 0
+}
+</style>
+<script src='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.js'></script>
+<link href='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.css' rel='stylesheet' />
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.5.1/mapbox-gl-geocoder.min.js"></script>
+<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.5.1/mapbox-gl-geocoder.css" type="text/css"/>
+<script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-language/v0.10.1/mapbox-gl-language.js'></script>
+<!-- Promise polyfill script required to use Mapbox GL Geocoder in IE 11 -->
+<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js"></script>
+<script>
+$(function(){
+    var lng = "{! mpInstantSetup.mpLngLatDefault[0]}";
+    var lat = "{! mpInstantSetup.mpLngLatDefault[1]}";
+    var zoom = 17;
+
+    var showMap = function() {
+        mapboxgl.accessToken = 'pk.eyJ1IjoicGF5cGF5IiwiYSI6ImNrN2N6M2IyczFqenozZm51ZnpkYTdkeDMifQ.4_5A29W-U_Pm8WuBoDGaqw';
+        var map = new mapboxgl.Map({
+        container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v10',
+            center: [lng, lat],
+            zoom: zoom
+        });
+        map.addControl(new MapboxGeocoder({
+            accessToken: mapboxgl.accessToken,
+            mapboxgl: mapboxgl,
+            collapsed: true
+        }));
+        map.addControl(new MapboxLanguage({
+            defaultLanguage: 'ja'
+        }));
+        var nav = new mapboxgl.NavigationControl();
+        map.addControl(nav, 'top-left');
+        var marker = null;
+        if (lng != "{!mpOpportunity__c.OgglongitudeInput__c}" || lat != "{!mpOpportunity__c.OgglatitudeInput__c}") {
+            $("input[id$='ylatitude']").val('');
+            $("input[id$='ylongitude']").val('');
+        } else {
+            marker = new mapboxgl.Marker()
+                .setLngLat([lng, lat])
+                .addTo(map);
+        }
+    
+        map.on('click', function(e) {
+            console.log('A click event has occurred at ' + e.lngLat);
+            //マーカーを削除
+            if(marker != null) {
+                marker.remove();
+            }
+            //マーカーを追加
+            marker = new mapboxgl.Marker()
+                .setLngLat(e.lngLat)
+                .addTo(map);
+            // フォームに緯度・経度を設定
+            $("input[id$='ylongitude']").val(e.lngLat.lng);
+            $("input[id$='ylatitude']").val(e.lngLat.lat);
+        });
+    }
+
+    if (lng == "0" && lat == "0") {
+        if (navigator.geolocation) {
+            //Geolocation APIに対応している場合、現在地を取得して緯度経度が設定された地図を表示
+            // 現在地を取得
+            navigator.geolocation.getCurrentPosition(
+                //取得成功した場合
+                function(position) {
+                    //現在地を設定して地図を表示
+                    lng = position.coords.longitude;
+                    lat = position.coords.latitude;
+                    showMap();
+                },
+                //取得失敗した場合
+                function(error) {
+                    console.log(error);
+                    // 東京駅
+                    lng = 139.767009;
+                    lat = 35.680840;
+                    zoom = 13;
+                    showMap();
+                },
+                { timeout: 3500 } // 3秒でタイムアウトさせる
+            );
+        } else {
+            // 東京駅
+            lng = 139.767009;
+            lat = 35.680840;
+            zoom = 13;
+            showMap();
+        }
+    } else {
+        showMap();
+    }
+});
+
+window.validation = (function() {
+    var _hasError = false;
+    var _error = function(element, msg){
+        var target = $(element);
+         if ($(element).next("div.errorMsg").length == 0) {
+             $(element).after($('<div class="errorMsg"></div>'));
+         } else {
+             $(element).next("div.errorMsg").empty();
+         }
+         if (msg != "") {
+             $(element).next("div.errorMsg").html('<strong>エラー:</strong> '+msg);
+             _hasError = true;
+             $(element).focus();
+         }
+    }
+
+    return function(){
+        _hasError = false;
+
+        var $inputYlatitude = $("input[id$='ylatitude']");
+        var $inputYlongitude = $("input[id$='ylongitude']");
+
+        _error($inputYlongitude, '')
+        if ($inputYlatitude.val() == '' || $inputYlongitude.val() == '' || ($inputYlatitude.val() == 0 && $inputYlongitude.val() == 0)) {
+            _error($inputYlongitude, '地図にピンを立ててください')
+        }
+
+        return ! _hasError;
+    };
+})();
+</script>
+<apex:form >
+        
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                地図
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <div class="row">
+    
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="form-group">
+                                    <label>地図掲載開始予定日</label>
+                                    <div>
+                                        <apex:selectList id="addmap" value="{! mpOpportunity__c.MapDisplayTime__c}" styleClass="form-control" style="width:300px;" size="1" required="True">
+                                            <apex:selectOption itemValue="キット到着後、約１週間後に掲載" itemLabel="約1週間以内に掲載"/>
+                                            <apex:selectOption itemValue="審査可決後、約1ヵ月後に掲載" itemLabel="約1ヵ月後に掲載"/>
+                                            <apex:selectOption itemValue="審査可決後、約3ヵ月後に掲載" itemLabel="約3ヵ月後に掲載"/>
+                                        </apex:selectList> 
+                                    </div>
+                                    <span style="font-size:12px;">※ 掲載予定日は目安となります。</span><br />
+                                    <span style="font-size:12px;">※ 「約1週間以内に掲載」を選択して当日全て登録完了した場合、当日中に地図掲載されます。</span>
+                                </div>
+                            </div>
+                            
+                            <div class="col-xs-12">
+                                <div class="form-group">
+                                    <label>地図掲載位置</label>
+                                    <p>地図をタップして店舗の位置にピンを立ててください。</p>
+                                    <div id='map' style='width:100%; height:480px; max-width:100%;'></div>
+                                    <p>
+                                        緯度<span style="margin-left: 1em;"></span><apex:InputText value="{! mpOpportunity__c.OgglatitudeInput__c}" html-placeholder="" id="ylatitude" html-readonly="true"/>
+                                    </p>
+                                    <p>
+                                        経度<span style="margin-left: 1em;"></span><apex:InputText value="{! mpOpportunity__c.OgglongitudeInput__c}" html-placeholder="" id="ylongitude" html-readonly="true"/>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+
+            <div  class="row" style="padding-top:40px;">
+                <p class="text-center col-xs-6">
+                    <apex:commandButton action="{! mpInstantSetup.step3back}" value="戻る" Styleclass="btnView primary" styleClass="submitBtn btn btn-lg" reRender="includeBody" >
+                        <apex:param name="backIndex" value="2" />
+                    </apex:commandButton>
+                </p>
+    
+                <p class="text-center  col-xs-6">
+                    <apex:commandButton action="{! mpInstantSetup.step3}" value="次へ" onClick="if(! validation()) return false;" Styleclass="btnView primary" styleClass="submitBtn btn-primary btn-lg" />
+                </p>
+            </div>
+
+</apex:form>
+
+</apex:component>

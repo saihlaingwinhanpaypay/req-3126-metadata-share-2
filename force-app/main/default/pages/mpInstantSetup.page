@@ -1,0 +1,337 @@
+<apex:page cache="false" showheader="false" sidebar="false" docType="html-5.0" standardController="mpOpportunity__c" extensions="mpInstantSetup" action="{!redirectcheck}" >
+
+  <vs:importvisualstrap theme="paper" />
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="initial-scale=1.0,user-scalable=no" />
+      <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+      <title>PayPay加盟店のお申し込み</title>
+      <meta property="og:type" content="website" />
+      <link rel="icon" href="https://image.paypay.ne.jp/favicon.ico" />
+      <apex:stylesheet value="{!URLFOR($Resource.paypay_css, 'paypay_css/PayPay_common_css.css')}"/>
+      <apex:includeScript value="{! $Resource.jpostal }"/>
+      <apex:includeScript value="{! $Resource.autokana }"/>
+      <style>
+          .section__txt{font-size:24px;}
+          .sectionSummary__attent__txt{text-align:center;}
+          .modal-header button.close{
+              background: none;
+              padding-top:0px;
+              padding-bottom:6px;
+          }
+          .modal-body {
+              padding-top: 25px;
+          }
+          .visualstrap .modal-body .form-group,
+          .visualstrap .modal-body label {
+              margin-bottom: 0px;
+          }
+          .visualstrap .sectionSummary__attent__txt{font-size: 14px;margin-left:0px;}
+          .visualstrap input[type="button"] {
+              -webkit-appearance: button;
+              cursor: pointer;
+          }
+          .visualstrap .panel-body textarea.form-control,
+          .visualstrap input[type="text"].form-control,
+          .visualstrap input[type="tel"].form-control,
+          .visualstrap select.form-control  {
+              border: 1px solid #bbb;
+              border-radius:3px;
+              box-shadow: none;
+              padding: 3px 5px;
+          }
+          .visualstrap input[type="text"].form-control[readonly]{
+              background-color:#DDD;
+          }
+          .visualstrap input[type="tel"].form-control{
+              max-width:150px;
+          }
+          .checkbox .requiredInput{display: inline-block;}
+          .visualstrap .panel-body .checkbox label{font-size:14px;}
+
+          .visualstrap .btn {
+              min-width:100px;
+          }
+          .visualstrap .btn.btn-sm {
+              min-width:50px;
+          }
+          @media (min-width: 768px) {
+              .visualstrap .btn {
+                  min-width:300px;
+              }
+              .visualstrap .btn.btn-sm {
+                  min-width:50px;
+              }
+          }
+          p.title {
+              font-size:130%;
+          }
+          .visualstrap label {
+              font-size:120%;
+          }
+          .visualstrap .form-group > span.label:before,
+          .visualstrap .form-group > label:before,
+          .visualstrap .form-group div:not(.checkbox) > label:before{
+              content: " ";
+              padding: 1px;
+              display:inline-block;
+              font-weight:bold;
+              border: 1px solid #f6b73c;
+              border-radius: 10px;
+              width: 2px;
+              height: 25px;
+              background-color: #f6b73c;
+              vertical-align: middle;
+              margin-right:5px;
+          }
+          .visualstrap .form-group > span.label:before{
+              position:relative;
+              left:-15px;
+              margin:0px;
+          }
+          .visualstrap .form-group > span.label{
+              margin-left:9px;
+          }
+          .visualstrap .form-group > span.label:after{
+              content: " ";
+              display:inline-block;
+              padding:1px;
+              opacity:0;
+              
+          }
+          .visualstrap .form-group > span.label + label:before{
+              content: "";
+              border:0px;
+              padding:0px;
+              display:none;              
+          }
+
+          .visualstrap .panel-body label {
+              font-size: 17px;
+              margin-bottom: 1px;
+          }
+          span.label.label-primary {
+              margin-right:5px;
+          }
+          .visualstrap .well{
+                margin-bottom:10px;
+                padding:10px;
+          }
+          .visualstrap .well p{
+              margin:0px;
+          }
+          .visualstrap .glyphicon-ok:before{
+              color: #3B3;
+              margin-right: 3px;
+          }
+          .visualstrap .glyphicon-remove:before{
+              color: #B33;
+              margin-right: 3px;
+          }
+          .visualstrap .glyphicon-warning-sign:before{
+              color: #F90;
+              margin-right: 3px;
+          }
+  </style>
+  <script>
+  $(function(){
+      var timer = null
+      var base_function = function() {
+        $('.hankakunum').not(".hankakunum-binded").each(function(){
+            $(this).blur(function(){
+                var val = $(this).val();
+                if (val != '') {
+                    // 全角数値を半角に変換する
+                    var han = val.replace(/[０-９]/g, function(s){
+                        return String.fromCharCode(s.charCodeAt(0)-0xFEE0);
+                    })
+                    // 紛らわしい全角の文字たち
+                    .replace(/[－‐ー−—─]/g, '-');
+                    if (val != han) {
+                        $(this).val(han).change();
+                    }
+                }
+            });
+            $(this).addClass("hankakunum-binded");
+        });
+        $("input[type='text']").not(".keydown-binded").on("keydown", function(e) {
+            // エンターを無効化
+            if ((e.which && e.which === 13) || (e.keyCode && e.keyCode === 13)) {
+                return false;
+            } else {
+                return true;
+            }
+            $(this).addClass("keydown-binded");
+        });
+      }
+      base_function();
+ 
+      var mo = new MutationObserver(function(event){
+          clearTimeout(timer)
+          timer = setTimeout(function(){
+              base_function();
+          }, 1000);
+      });
+      mo.observe($('#includeBodyWrap').get(0), {childList: true});
+    });
+      </script>
+    </head>
+    <body>
+    <div id="wrapper">
+        <!-- header -->
+        <header class="header isLP">
+          <!-- header -->
+          <div class="header__inner">
+            <p class="header__logo">
+              <a class="header__logo__link" href="https://paypay.ne.jp/">
+                <img src="https://image.paypay.ne.jp/page/common/images/img_logo.png" alt="PayPay株式会社" />
+              </a>
+            </p>
+          </div>
+        </header>
+
+        <div id="contents">
+          <vs:visualstrapblock >
+                <div class="container-fluid">
+                  <div class="row sampleRow">
+                    <div class="col-xs-12 col-md-1">
+                      <!-- サイド左 -->
+                    </div>
+                    <div class="col-xs-12 col-md-10" style="max-width:800px;margin:0 auto;float:none;">
+                      <br />
+                      <div id="includeBodyWrap">
+                      <apex:outputPanel id="includeBody">
+                           <apex:outputPanel rendered="{!IF(Error != '' ,true,false)}">
+                               <p class="lead" style="color:red;"><apex:outputText id="ea_errorDateHelpMessage_br" escape="false" value="{! Error}" /></p>
+                           </apex:outputPanel>
+
+                          <apex:outputPanel rendered="{! includePage == 'Top'}" >
+                              <c:mpInstantSetup_Top mpOpportunity__c="{! mpOpportunity__c}" mpInstantSetup="{! mpInstantSetup}" />
+                          </apex:outputPanel>
+                          <apex:outputPanel rendered="{! includePage == 'Verify'}" >
+                              <c:mpInstantSetup_Verify mpOpportunity__c="{! mpOpportunity__c}" mpVerifyCode="{! mpVerifyCode}" />
+                          </apex:outputPanel>
+                          <apex:outputPanel rendered="{! includePage == 'Step1'}" >
+                              <c:mpInstantSetup_Step1 mpOpportunity__c="{! mpOpportunity__c}" mpInstantSetup="{! mpInstantSetup}" />
+                          </apex:outputPanel>
+                          <apex:outputPanel rendered="{! includePage == 'Step2_1'}" >
+                              <c:mpInstantSetup_Step2_1 mpOpportunity__c="{! mpOpportunity__c}" mpInstantSetup="{! mpInstantSetup}" />
+                          </apex:outputPanel>
+                          <!-- 2021/10 FSA追加対応 -->
+                          <!-- Step2_2をStep2_2,Step2_3として分けて対応する -->
+                          <!-- Step2_6を追加 -->
+                          <apex:outputPanel rendered="{! includePage == 'Step2_2'}" >
+                              <c:mpInstantSetup_Step2_2 mpOpportunity__c="{! mpOpportunity__c}" mpInstantSetup="{! mpInstantSetup}" />
+                          </apex:outputPanel>
+                          <apex:outputPanel rendered="{! includePage == 'Step2_3'}" >
+                              <c:mpInstantSetup_Step2_3 mpOpportunity__c="{! mpOpportunity__c}" mpInstantSetup="{! mpInstantSetup}" />
+                          </apex:outputPanel>
+                          <apex:outputPanel rendered="{! includePage == 'Step2_4'}" >
+                              <c:mpInstantSetup_Step2_4 mpOpportunity__c="{! mpOpportunity__c}" mpInstantSetup="{! mpInstantSetup}" />
+                          </apex:outputPanel>
+                          <apex:outputPanel rendered="{! includePage == 'Step2_5'}" >
+                              <c:mpInstantSetup_Step2_5 mpOpportunity__c="{! mpOpportunity__c}" mpInstantSetup="{! mpInstantSetup}" />
+                          </apex:outputPanel>
+                          <apex:outputPanel rendered="{! includePage == 'Step2_6'}" >
+                              <c:mpInstantSetup_Step2_6 mpOpportunity__c="{! mpOpportunity__c}" mpInstantSetup="{! mpInstantSetup}" />
+                          </apex:outputPanel>
+                          <apex:outputPanel rendered="{! includePage == 'Step3_1'}" >
+                              <c:mpInstantSetup_Step3_1 mpOpportunity__c="{! mpOpportunity__c}" mpInstantSetup="{! mpInstantSetup}" />
+                          </apex:outputPanel>
+                          <apex:outputPanel rendered="{! includePage == 'Step3_2'}" >
+                              <c:mpInstantSetup_Step3_2 mpOpportunity__c="{! mpOpportunity__c}" mpInstantSetup="{! mpInstantSetup}" />
+                          </apex:outputPanel>
+                          <apex:outputPanel rendered="{! includePage == 'Step3_3'}" >
+                              <c:mpInstantSetup_Step3_3 mpOpportunity__c="{! mpOpportunity__c}" mpInstantSetup="{! mpInstantSetup}" />
+                          </apex:outputPanel>
+                          <apex:outputPanel rendered="{! includePage == 'Step3_4'}" >
+                              <c:mpInstantSetup_Step3_4 mpOpportunity__c="{! mpOpportunity__c}" mpInstantSetup="{! mpInstantSetup}" />
+                          </apex:outputPanel>
+                          <apex:outputPanel rendered="{! includePage == 'Step3_5'}" >
+                              <c:mpInstantSetup_Step3_5 mpOpportunity__c="{! mpOpportunity__c}" mpInstantSetup="{! mpInstantSetup}" />
+                          </apex:outputPanel>
+                          <apex:outputPanel rendered="{! includePage == 'Step4_1'}" >
+                              <c:mpInstantSetup_Step4_1 mpOpportunity__c="{! mpOpportunity__c}" mpInstantSetup="{! mpInstantSetup}" />
+                          </apex:outputPanel>
+                          <apex:outputPanel rendered="{! includePage == 'StepAlipay'}" >
+                              <c:mpInstantSetup_StepAlipay mpOpportunity__c="{! mpOpportunity__c}" mpInstantSetup="{! mpInstantSetup}" />
+                          </apex:outputPanel>
+                          <apex:outputPanel rendered="{! includePage == 'Step4_2'}" >
+                              <c:mpInstantSetup_Step4_2 mpOpportunity__c="{! mpOpportunity__c}" mpInstantSetup="{! mpInstantSetup}" />
+                          </apex:outputPanel>
+                          <apex:outputPanel rendered="{! includePage == 'StepConfirm'}" >
+                              <c:mpInstantSetup_StepConfirm mpOpportunity__c="{! mpOpportunity__c}" mpInstantSetup="{! mpInstantSetup}" />
+                          </apex:outputPanel>
+                          <apex:outputPanel rendered="{! includePage == 'StepInterruption'}" >
+                              <c:mpInstantSetup_StepInterruption />
+                          </apex:outputPanel>
+                          <apex:outputPanel rendered="{! includePage == 'Step5_1'}" >
+                              <c:mpInstantSetup_Step5_1 mpOpportunity__c="{! mpOpportunity__c}" mpInstantSetup="{! mpInstantSetup}" />
+                          </apex:outputPanel>
+                          <apex:outputPanel rendered="{! includePage == 'Step5_2'}" >
+                              <c:mpInstantSetup_Step5_2 mpOpportunity__c="{! mpOpportunity__c}" mpInstantSetup="{! mpInstantSetup}" />
+                          </apex:outputPanel>
+                          <apex:outputPanel rendered="{! includePage == 'Step5_3'}" >
+                              <c:mpInstantSetup_Step5_3 />
+                          </apex:outputPanel>
+                          <apex:outputPanel rendered="{! includePage == 'Step6_1'}" >
+                              <c:mpInstantSetup_Step6 />
+                          </apex:outputPanel>
+                          <apex:outputPanel rendered="{! includePage == 'StepKyc'}" >
+                              <script>
+                                  var mpFormKycViewControll = mpInstantSetup;
+                              </script>
+                              <c:mpFormKycUpload mpOpportunity__c="{! mpOpportunity__c}" mpFormKycViewControll="{! kycFirst}" />
+                          </apex:outputPanel>
+                          <apex:outputPanel rendered="{! includePage == 'StepKycResult'}" >
+                              <script>
+                                  var mpFormKycViewControll = mpInstantSetup;
+                              </script>
+                              <c:mpInstantSetup_StepKycResult mpOpportunity__c="{! mpOpportunity__c}" mpInstantSetup="{! mpInstantSetup}" />
+                          </apex:outputPanel>
+                          <apex:outputPanel rendered="{! includePage == 'StepReviewing'}" >
+                              <c:mpInstantSetup_StepReviewing mpOpportunity__c="{! mpOpportunity__c}" mpInstantSetup="{! mpInstantSetup}" />
+                          </apex:outputPanel>
+                    </apex:outputPanel>
+                    </div>
+                    </div>
+                    <div class="col-xs-12 col-md-1">
+                      <!-- サイド右 -->
+                    </div>
+
+                    </div>
+                </div>
+          </vs:visualstrapblock>
+      </div>
+    </div>
+
+      <!-- footer -->
+      <footer class="footer">
+        <div class="footer__inner">
+          <!-- footer__sns -->
+          <div class="footer__sns"></div>
+          <!-- /footer__sns -->
+          <div class="footer__logo">
+            <a href="https://paypay.ne.jp/">
+              <img src="https://image.paypay.ne.jp/page/common/images/img_logo.png" alt="PayPay株式会社" />
+            </a>
+          </div>
+          <!-- footer__link -->
+          <ul class="footer__link">
+            <li class="footer__link__item">
+              <a href="https://about.paypay.ne.jp/docs/terms/privacy/">プライバシーポリシー </a>
+            </li>
+          </ul>
+          <!-- /footer__link -->
+        </div>
+        <!-- /footer__inner -->
+        <p class="footer__copyright" style="padding-bottom:10px;">
+          <small>Copyright (C) {!year(today())} PayPay Corporation.
+            <br class="pcNone" />All&nbsp;Rights&nbsp;Reserved. 
+          </small>
+        </p>
+      </footer>
+      <!-- footer -->
+</body>
+
+</apex:page>

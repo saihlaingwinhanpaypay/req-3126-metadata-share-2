@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
-    <types>
+<!--
+<types>
 	<members>mpLocationUpdateEvent</members>
 	<members>mpMapPickerApp</members>
 	<members>mpMapPickerWrapper</members>
@@ -12,11 +13,33 @@
 </types>
 <types>
 	<members>mpFormBank</members>
+	<members>mpFormConfirmAll</members>
+	<name>ApexPage</name>
+</types>
+
+
+<types>
+	<members>mpForm</members>
+	<members>mpInstantSetup</members>
+	<name>ApexClass</name>
+</types>
+-->
+
+<types>
+	<members>mpInstantSetup</members>
+	<name>ApexClass</name>
+</types>
+<types>
+	<members>mpFormConfirmAll</members>
+	<members>mpInstantSetup</members>
 	<name>ApexPage</name>
 </types>
 <types>
-	<members>mpForm</members>
-	<name>ApexClass</name>
+	<members>mpInstantSetup_Step3_3</members>
+	<members>mpInstantSetup_Step2_5</members>
+	<members>mpInstantSetup_Step3_5</members>
+	<members>mpInstantSetup_StepConfirm</members>
+	<name>ApexComponent</name>
 </types>
     <version>65.0</version>
 </Package>

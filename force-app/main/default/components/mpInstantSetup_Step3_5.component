@@ -1,0 +1,488 @@
+<apex:component allowDML="true">
+<apex:attribute name="mpOpportunity__c" description="mpOpportunity__c" type="mpOpportunity__c" required="true"/>
+<apex:attribute name="mpInstantSetup" description="mpInstantSetup" type="mpInstantSetup" required="true"/>
+
+<apex:outputText rendered="{!mpInstantSetup.ShowMap}">
+<script src='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.js'></script>
+<link href='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.css' rel='stylesheet' />
+<script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-language/v0.10.1/mapbox-gl-language.js'></script>
+<!-- Promise polyfill script required to use Mapbox GL Geocoder in IE 11 -->
+<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js"></script>
+</apex:outputText>
+<style>
+.confirm-data {display:block;}
+.confirm-data .form-group {display:block;}
+.confirm-data .form-group > *:not(script){display:block;}
+
+.visualstrap .panel-body label{
+    margin-right:20px;
+    padding-right: 5px;
+    border-bottom: 1px solid #ccc;
+    font-weight: bold;
+    font-size:90%;
+}
+.table-area{
+    display:table;
+    border-collapse: separate;
+    border-spacing: 5px 0;
+}
+.table-area > *:not(script){
+    display:table-row;
+}
+.table-area > *:not(script) > *:not(script){
+    display:table-cell;
+    min-width:70px;
+}
+.table-area .table-kana div{
+    font-size:70%;
+}
+.confirm-data.checkbox .form-group{
+    font-size:14px;
+}
+@media (min-width: 768px) {
+    .visualstrap .panel-body label{
+        margin-right:20px;
+        min-width:150px;
+        padding-right: 5px;
+    }
+    .confirm-data {
+        display:table;
+        border-collapse: separate;
+        border-spacing: 0 15px;
+        min-width:80%;
+    }
+    .confirm-data .form-group {display:table-row;}
+    .confirm-data .form-group > *:not(script){
+        display:table-cell;
+        border-bottom:1px solid #ccc;
+    }
+    .confirm-data .form-group > *:not(script):nth-child(1),
+    .confirm-data .form-group > script:nth-child(1) + *:nth-child(2){
+        width:30%;
+        min-width:200px;
+        padding-left:15px;
+        vertical-align:middle;
+        text-align:left;
+    }
+    .confirm-data.checkbox .form-group > *:not(script):nth-child(1),
+    .confirm-data.checkbox .form-group > script:nth-child(1) + *:nth-child(2){
+        width:15%;
+        min-width:80px;
+        text-align:center;
+    }
+}
+</style>
+<apex:outputPanel rendered="{!mpInstantSetup.ShowMap}">
+<script>
+$(function(){
+    var lat = "{! mpOpportunity__c.OgglatitudeInput__c}";
+    var lng = "{! mpOpportunity__c.OgglongitudeInput__c}";
+    var zoom = 19;
+
+    mapboxgl.accessToken = 'pk.eyJ1IjoicGF5cGF5IiwiYSI6ImNrN2N6M2IyczFqenozZm51ZnpkYTdkeDMifQ.4_5A29W-U_Pm8WuBoDGaqw';
+    var map = new mapboxgl.Map({
+    container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v10',
+        center: [lng, lat],
+        zoom: zoom
+    });
+    map.addControl(new MapboxLanguage({
+        defaultLanguage: 'ja'
+    }));
+    var nav = new mapboxgl.NavigationControl();
+    map.addControl(nav, 'top-left');
+    var marker = new mapboxgl.Marker()
+        .setLngLat([lng, lat])
+        .addTo(map);
+});
+</script>
+</apex:outputPanel>
+<apex:form >
+
+    <apex:outputText rendered="{!mpInstantSetup.BankError == '1'}">
+        <div style="text-align:center;color:#FD5C5C;font-weight: bold;background: #FFFAEE;  border: solid 1px #EEE263;padding: 10px;margin-right: auto;margin-left: auto;margin-bottom:20px;">
+            ご入力いただいてる口座名義（カナ）が以下基準を満たしているか、改めてご確認ください。<br />
+            <div style="text-align:left;background-color:#FFF;color:#333;padding:10px;border:1px solid #EEEADD;border-radius:5px;">
+                <apex:outputPanel rendered="{!mpOpportunity__c.CorporateForm__c == '法人'}">
+                    <div style="font-size:12px;" class="account-text account-text-normal">
+                        <span style="font-weight:bold;">◆通常登録　法人様の場合</span><br />
+                        <div style="padding:10px;border:1px solid #aaa;border-radius:5px;">
+                            <span style="color:#F00;">口座名義に「法人名カナ」「代表者氏名カナ」のいずれかを含めてください。</span><br />
+                            「法人名カナ」を含む場合は下記をご確認ください。<br />
+                            <br />
+                            ・法人格の表記に略字をご使用ください。<br />
+                            ・法人格と社名のみで振込みができますので、「ダイヒョウトリシマリヤク」や「代表者名」などを入力する必要はございません。<br />
+                            <br />
+                            <span style="font-weight:bold;">略字の使用例）</span><br />
+                            <span style="font-weight:bold;text-decoration:underline;">株式会社日本： カ）ニホン　<br />
+                                日本株式会社新宿営業所： ニホン（カ）シンジユク（エイ）<br />
+                                日本株式会社： ニホン（カ</span>
+                        </div>
+                    </div>
+                </apex:outputPanel>
+                
+                <apex:outputPanel rendered="{!mpOpportunity__c.CorporateForm__c != '法人'}">
+                    <div style="font-size:12px;" class="account-text account-text-normal">
+                        <span style="font-weight:bold;">◆通常登録　個人事業主様の場合</span><br />
+                        <div style="padding:10px;border:1px solid #aaa;border-radius:5px;">
+                            <span style="color:#F00;">口座名義に「代表者カナ」を含めてください。※原則代表者名義の口座のみ</span><br />
+                            <br />
+                            別名義を指定する場合は、代表者の同居家族名義のみ可能となります。<br />
+                            住民票を提出いただき、同居家族であることを確認しますので、お申込後に弊社担当よりご連絡いたします。<br />
+                            <br />
+                            姓と名の間に、全角スペースを入力してください。<br />
+                            口座名義に屋号が含まれる場合は、屋号、姓、名の間に全角スペースを入れてください。<br />
+                            <br />
+                            <span style="font-weight:bold;">入力例）</span><br />
+                            <span style="font-weight:bold;text-decoration:underline;">ペイペイタロウ：ペイペイ（全角スペース）タロウ<br />
+                                PayPay商事ペイペイタロウ：ペイペイショウジ（全角スペース）ペイペイ（全角スペース）タロウ</span><br />
+                        </div>
+                    </div>
+                </apex:outputPanel>
+            </div>
+        </div>
+    </apex:outputText>
+
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                入金先の金融機関情報
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <apex:outputPanel rendered="{! !mpOpportunity__c.JapanPostBankFlag__c}">
+                    <div class="confirm-data">
+                        <div class="form-group">
+                            <label>入金先口座の契約種類</label>
+                            <div>
+                                <apex:outputField value="{! mpOpportunity__c.DepositAccountType__c}" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>金融機関</label>
+                            <div>
+                                <div>{! mpOpportunity__c.FinancialInstitutionLabel__c}</div>
+                                <div>{! mpOpportunity__c.BranchLabel__c}</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>口座種別</label>
+                            <div>{! mpOpportunity__c.AccountType__c}</div>
+                        </div>
+                        <div class="form-group">
+                            <label>口座番号</label>
+                            <div>{! mpOpportunity__c.AccountNumber__c}</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="InputPhone">口座名義（カナ）</label>
+                            <div>{! mpOpportunity__c.AccountHolder__c}</div>
+                        </div>
+                    </div>
+                    </apex:outputPanel>
+                    <apex:outputPanel rendered="{! mpOpportunity__c.JapanPostBankFlag__c}">
+                    <div class="confirm-data">
+                        <div class="form-group">
+                            <label>入金先口座の契約種類</label>
+                            <div>
+                                <apex:outputField value="{! mpOpportunity__c.DepositAccountType__c}" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>金融機関</label>
+                            <div>{! mpOpportunity__c.FinancialInstitutionLabel__c}</div>
+                        </div>
+                        <div class="form-group">
+                            <label>口座種別</label>
+                            <div>{! mpOpportunity__c.AccountType__c}</div>
+                        </div>
+                        <div class="form-group">
+                            <label>記号</label>
+                            <div>{! mpOpportunity__c.JapanPostBankSymbol__c}</div>
+                        </div>
+                        <div class="form-group">
+                            <label>番号</label>
+                            <div>{! mpOpportunity__c.JapanPostBankNumber__c}</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="InputPhone">口座名義（カナ）</label>
+                            <div>{! mpOpportunity__c.AccountHolder__c}</div>
+                        </div>
+                    </div>
+                    </apex:outputPanel>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                振込サイクル
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <apex:outputText rendered="{! mpOpportunity__c.PayCyclePattern__c == 'エンプラ'}">
+                        <div class="confirm-data">
+                            <div class="form-group">
+                                <label>振込サイクル</label>
+                                <div>
+                                    <apex:outputText rendered="{! mpOpportunity__c.PayCycle__c == '月１回(末締め末払)'}"><div>月1回（月末日締め、翌月末営業日払い）</div></apex:outputText>
+                                    <apex:outputText rendered="{! mpOpportunity__c.PayCycle__c == '月２回(15締末払)'}"><div>月2回（15日締め、当月末営業日払い・月末締め、翌月15日払い）</div></apex:outputText>
+                                </div>
+                            </div>
+                        </div>
+                    </apex:outputText>
+                    <apex:outputText rendered="{! mpOpportunity__c.PayCyclePattern__c != 'エンプラ'}">
+                        <div class="confirm-data">
+                            <div class="form-group">
+                                <label>振込サイクル</label>
+                                <div>
+                                    {!IF(mpOpportunity__c.EarlyPayoutCycle__c, '翌日※/翌々営業日入金', '月１回')}<br />
+                                    <apex:outputText rendered="{!mpOpportunity__c.EarlyPayoutCycle__c}">
+                                        <span style="font-size:80%;">※翌日入金はPayPay銀行の口座が対象です。</span>
+                                    </apex:outputText>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="confirm-data checkbox">
+                            <div class="form-group">
+                                <apex:outputField value="{! mpOpportunity__c.EarlyPayoutCycle__c}" style="margin-top:5px;" /><span>早期振込サービス（自動）規約に同意し、早期振込サービス（自動）に申込む。</span>
+                            </div>
+                        </div>
+                    </apex:outputText>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+
+        <apex:outputPanel rendered="{!mpInstantSetup.ShowMap}">
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                地図
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <div class="confirm-data">
+                        <div class="form-group">
+                            <label for="InputRepreLastName">地図掲載開始予定日</label>
+                            <apex:outputPanel rendered="{! mpOpportunity__c.MapDisplayTime__c == 'キット到着後、約１週間後に掲載'}"><div>約1週間以内に掲載</div></apex:outputPanel>
+                            <apex:outputPanel rendered="{! mpOpportunity__c.MapDisplayTime__c == '審査可決後、約1ヵ月後に掲載'}"><div>約1ヵ月後に掲載</div></apex:outputPanel>
+                            <apex:outputPanel rendered="{! mpOpportunity__c.MapDisplayTime__c == '審査可決後、約3ヵ月後に掲載'}"><div>約3ヵ月後に掲載</div></apex:outputPanel>
+                        </div>
+                    </div>
+                    <div id="map" style="width:100%; height:480px; max-width:100%;"></div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+        </apex:outputPanel>
+
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                許認可等の確認
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="confirm-data checkbox">
+                            <div class="form-group">
+                                <apex:outputField value="{! mpOpportunity__c.Licensing_Antique__c}" style="margin-top:5px;" /><span>中古品、リサイクル品、古物を扱っています。<br />（古物商許可証の書類が必要になります）</span>
+                            </div>
+                            <div class="form-group">
+                                <apex:outputField value="{! mpOpportunity__c.Licensing_TreatmentPlace__c}" style="margin-top:5px;" /><span>施術所（鍼灸院、治療院、接骨院・整骨院）に該当します。<br />（開設届出済証明書の書類が必要になります）</span>
+                            </div>
+                            <div class="form-group">
+                                <apex:outputField value="{! mpOpportunity__c.Licensing_TravelAgency__c}" style="margin-top:5px;" /><span>旅行代理店に該当します。<br /> （旅行業者登録票の書類が必要になります）</span>
+                            </div>
+                            <div class="form-group">
+                                <apex:outputField value="{! mpOpportunity__c.Licensing_Consultation__c}" style="margin-top:5px;" /><span>医療相談、法律相談を行っています。 <br />（資格認定証／登録証の書類が必要になります）</span>
+                            </div>
+                            <div class="form-group">
+                                <apex:outputField value="{! mpOpportunity__c.Licensing_DrivingAgency__c}" style="margin-top:5px;" /><span>運転代行業に該当します。 <br />（自動車運転代行業認定証の名義と番号がわかる書類が必要になります）</span>
+                            </div>
+                            <!--
+<div class="form-group">
+<apex:outputField value="{! mpOpportunity__c.Licensing_RealEstate__c}" style="margin-top:5px;" /><span>不動産仲介業に該当します。 <br />（履歴事項全部証明書または宅地建物取引業者の詳細情報と署名済みの注意事項説明書類が必要になります）</span>
+</div>
+-->
+                            <div class="form-group">
+                                <apex:outputField value="{! mpOpportunity__c.Licensing_SpecifiedContinuousServices__c}" style="margin-top:5px;" /><span>特定継続的役務（学習塾/家庭教師/語学教室/エステ/美容医療/パソコン教室/結婚相手紹介）に該当します。 <br />（別途弊社から決算書（３期分）および履歴事項全部証明書もしくは確定申告書の写しの提出を求める場合があります）</span>
+                            </div>
+                            <div class="form-group">
+                                <apex:outputField value="{! mpOpportunity__c.Licensing_PublicGambling__c}" style="margin-top:5px;" /><span>公営ギャンブルに該当します。 <br />（主催者でない場合、主催者からの販売委託契約書の写しが必要になります）</span>
+                            </div>
+                            <div class="form-group">
+                                <apex:outputField value="{! mpOpportunity__c.Licensing_InsuranceBusiness__c}" style="margin-top:5px;" /><span>保険業（保険代理店）に該当します。 <br />（代理店委託契約書、または2名分の保険募集人資格登録証か合格証を添付してください）</span>
+                            </div>
+                            <div class="form-group">
+                                <apex:outputField value="{! mpOpportunity__c.Licensing_TicketSales__c}" style="margin-top:5px;" /><span>興行チケット販売業に該当します。 <br />（チケット不正転売禁止法遵守の同意書（※）を提出してください 二次販売の場合、古物商許可証を添付してください。<br/>※お申し込み受付後に別途弊社所定のフォーマットをご連絡いたします）</span>
+                            </div>
+                            <div class="form-group">
+                                <apex:outputField value="{! mpOpportunity__c.Licensing_PrepaidCard__c}" style="margin-top:5px;" /><span>商品券・プリペイドカード・交通乗車券販売業に該当します。 <br />（二次販売の場合、古物商許可証を添付してください）</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+        
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                自治体等主催のキャンペーンへの参加同意
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                <div class="row">
+                    <div class="col-xs-12 col-md-12">
+                        <div class="form-group">
+                            <div class="checkbox">
+                                <apex:outputField value="{! mpOpportunity__c.InfoAgreementCheck__c}" style="margin-top:5px;"   />
+                                <span style="font-size:14px;">自治体等への加盟店情報連携に同意し、自治体キャンペーンに参加します</span>
+                                        <p style="font-size:12px; color:#aaa; margin-left:24px;">
+                                            <a href="https://paypay.ne.jp/store/introduction/jichitai-cp/" target="_blank" rel="noopener noreferrer">自治体等への加盟店情報連携の同意について</a><br />
+                                        </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="u-mt-20">
+                        <p style="color:red;font-size:12px;margin-bottom:-2px;">※チェックいただいた場合、今後主催者から対象加盟店に選定された際、下記キャンペーンへは自動的に参加となります。</p>
+                        <span style="display:block;text-indent: 1em;font-size:12px;">
+                            <a class="u-text-link blank" href="https://paypay.ne.jp/event/support-local/" target="_blank"><span style="color:red">・自治体等主催のキャンペーンの例</span></a><br />
+                        </span>
+                    </div>
+                    <div class="u-mt-20">
+                        <p style="color:red;font-size:12px;margin-top:15px;">※一部対象外業種については、主催者から選定されても対象外となる場合もあります</p>
+                    </div>
+                </div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                PayPay商品券を活用した事業の参加同意（<span style="color:red">商品券利用情報の外部提供あり</span>）
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                <div class="row">
+                    <div class="col-xs-12 col-md-12">
+                        <div class="form-group">
+                            <div class="checkbox">
+                                <apex:outputField value="{! mpOpportunity__c.PayPayGiftVoucherAgreement__c}" style="margin-top:5px;"   />
+                                <span style="font-size:14px;">自治体等およびふるさと納税ポータルサイト運営会社へのPayPay商品券利用情報提供に同意し、PayPay商品券を活用した事業に参加します</span>
+                                <p style="font-size:12px; color:#aaa; margin-left:24px;">
+                                    <a href="https://paypay.ne.jp/store/introduction/jichitai-gift-vouchers/" target="_blank" rel="noopener noreferrer">自治体等およびふるさと納税ポータルサイト運営会社へのPayPay商品券利用情報提供の同意について</a><br />
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="u-mt-20">
+                    <p style="color:red;font-size:12px;margin-bottom:-2px;">※チェックいただいた場合、今後主催者から対象加盟店に選定された際、下記を含むPayPay商品券を活用した事業へは自動的に参加となります。</p>
+                    <span style="display:block;text-indent: 1em;font-size:12px;">
+                        <a class="u-text-link blank" href="https://paypay.ne.jp/help/c0443/" target="_blank"><span style="color:red">・自治体等が主催するPayPay商品券を活用した事業の例</span></a><br />
+                    </span>
+                    <span style="display:block;text-indent: 1em;font-size:12px;">
+                        <a class="u-text-link blank" href="https://paypay.ne.jp/guide/gift-vouchers/" target="_blank"><span style="color:red">・ふるさと納税ポータルサイト運営会社が自治体と提携し発行するPayPay商品券</span></a><br />
+                    </span>
+                </div>
+                <div class="u-mt-20">
+                    <p style="color:red;font-size:12px;margin-top:15px;">※一部対象外業種については、主催者から選定されても対象外となる場合もあります</p>
+                </div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+    <!-- カスタムメタデータ（PageSkipList__mdt）に該当する[お取り扱い商品2]（ProductName__c）の場合、ライトプラン同時申し込み用パネルは表示しない-->
+        <!-- panel panel-default -->
+        <apex:outputPanel rendered="{! NOT(mpInstantSetup.isSkipProductForLightPlan)}">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    PayPayマイストア　プラン選択
+                </div>
+                <!-- panel-body -->
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <div class="confirm-data">
+                        <div class="form-group">
+                            <label>プラン選択</label>
+                            <div>
+                                <apex:outputText rendered="{! mpOpportunity__c.mystore_kiyakudoui__c}"><div>各種規約に同意し、ライトプランに申し込む</div></apex:outputText>
+                                <apex:outputText rendered="{! NOT(mpOpportunity__c.mystore_kiyakudoui__c)}"><div>制限プランに申し込む</div></apex:outputText>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="confirm-data">
+                        <div class="form-group">
+                            <label>プラン適用日</label>
+                            <div>
+                                <apex:outputField value="{! mpOpportunity__c.AsynchronousOnboarding__c}" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                <!--  /panel-body -->
+            </div>
+        </apex:outputPanel>
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+               加盟店紹介キャンペーン
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <div class="confirm-data">
+                        <!-- ２列バターン -->
+                     <div class="form-group">
+                            <apex:outputField value="{! mpOpportunity__c.CampaignExplained__c}" style="margin-top:5px;" /><span>加盟店紹介キャンペーンの説明をうけました。</span>
+                     </div>
+                     </div>
+                  </div>
+             </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+        
+
+            <div  class="row" style="padding-top:40px;">
+                <p class="text-center col-xs-6">
+                    <apex:commandButton action="{! mpInstantSetup.step3back}" value="戻る" Styleclass="btnView primary" styleClass="submitBtn btn btn-lg" reRender="includeBody" >
+                        <apex:param name="backIndex" value="4" />
+                    </apex:commandButton>
+                </p>
+    
+                <p class="text-center  col-xs-6">
+                    <apex:commandButton action="{! mpInstantSetup.step3}" value="次へ" Styleclass="btnView primary" styleClass="submitBtn btn-primary btn-lg" />
+                </p>
+            </div>
+
+            <div  class="row" style="padding-top:40px;">
+                <p class="text-center  col-xs-12">
+                    <apex:commandButton action="{! mpInstantSetup.step3back}" value="最初に戻る" Styleclass="btnView primary" styleClass="submitBtn btn btn-lg" reRender="includeBody" />
+                </p>
+            </div>
+
+</apex:form>
+
+</apex:component>

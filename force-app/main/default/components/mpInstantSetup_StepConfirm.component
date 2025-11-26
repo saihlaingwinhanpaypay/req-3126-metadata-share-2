@@ -1,0 +1,1747 @@
+<apex:component allowDML="true">
+<apex:attribute name="mpOpportunity__c" description="mpOpportunity__c" type="mpOpportunity__c" required="true"/>
+<apex:attribute name="mpInstantSetup" description="mpInstantSetup" type="mpInstantSetup" required="true"/>
+
+<apex:outputText rendered="{!mpInstantSetup.ShowMap}">
+<script src='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.js'></script>
+<link href='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.css' rel='stylesheet' />
+<script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-language/v0.10.1/mapbox-gl-language.js'></script>
+<!-- Promise polyfill script required to use Mapbox GL Geocoder in IE 11 -->
+<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js"></script>
+</apex:outputText>
+<style>
+.confirm-data {display:block;}
+.confirm-data .form-group {display:block;}
+.confirm-data .form-group > *{display:block;}
+
+.visualstrap .panel-body label{
+    margin-right:20px;
+    padding-right: 5px;
+    border-bottom: 1px solid #ccc;
+    font-weight: bold;
+    font-size:90%;
+}
+.table-area{
+    display:table;
+    border-collapse: separate;
+    border-spacing: 5px 0;
+}
+.table-area > *{
+    display:table-row;
+}
+.table-area > * > *{
+    display:table-cell;
+    min-width:70px;
+}
+.table-area .table-kana div{
+    font-size:70%;
+}
+@media (min-width: 768px) {
+    .visualstrap .panel-body label{
+        margin-right:20px;
+        min-width:150px;
+        padding-right: 5px;
+    }
+    .confirm-data {
+        display:table;
+        border-collapse: separate;
+        border-spacing: 0 15px;
+        min-width:80%;
+    }
+    .confirm-data .form-group {display:table-row;}
+    .confirm-data .form-group > *{
+        display:table-cell;
+        border-bottom:1px solid #ccc;
+    }
+    .confirm-data .form-group > *:nth-child(1){
+        width:30%;
+        min-width:200px;
+        padding-left:15px;
+        vertical-align:middle;
+        text-align:left;
+    }
+    .confirm-data.checkbox .form-group > *:not(script):nth-child(1),
+    .confirm-data.checkbox .form-group > script:nth-child(1) + *:nth-child(2){
+        width:15%;
+        min-width:80px;
+        text-align:center;
+    }
+
+    .confirm-data .beneficial-owner {
+        padding-top: 20px;
+        margin-bottom: -20px;
+    }
+}
+</style>
+<script>
+$(function(){
+        if ($("[id$=':ea_errorDateHelpMessage_br']").text() != "") {
+            $(window).scrollTop(0);
+        }
+    _switchProductName();
+});
+    
+function _switchProductName() {
+
+    var selectedProductName = "{! mpOpportunity__c.ProductName__c}";
+    var isAlipayNotCoveredProduct = [];
+    <apex:repeat value="{!mpInstantSetup.AlipayProductName}" var="p">
+        isAlipayNotCoveredProduct.push('{!p}');  
+	</apex:repeat>
+    if (isAlipayNotCoveredProduct.includes(selectedProductName)){
+        $('.AlipayCheckboxPanel').hide();
+    } else {
+        $('.AlipayCheckboxPanel').show();
+    }
+}
+</script>
+<script>
+var submitFlg = false;
+function checkSubmit() {
+    if (submitFlg) return false;
+    submitFlg = true;
+    return true;
+}
+</script>
+<apex:outputPanel rendered="{!mpInstantSetup.ShowMap}">
+<script>
+$(function(){
+    var lat = "{! mpOpportunity__c.OgglatitudeInput__c}";
+    var lng = "{! mpOpportunity__c.OgglongitudeInput__c}";
+    var zoom = 19;
+
+    mapboxgl.accessToken = 'pk.eyJ1IjoicGF5cGF5IiwiYSI6ImNrN2N6M2IyczFqenozZm51ZnpkYTdkeDMifQ.4_5A29W-U_Pm8WuBoDGaqw';
+    var map = new mapboxgl.Map({
+    container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v10',
+        center: [lng, lat],
+        zoom: zoom
+    });
+    map.addControl(new MapboxLanguage({
+        defaultLanguage: 'ja'
+    }));
+    var nav = new mapboxgl.NavigationControl();
+    map.addControl(nav, 'top-left');
+    var marker = new mapboxgl.Marker()
+        .setLngLat([lng, lat])
+        .addTo(map);
+});
+</script>
+</apex:outputPanel>
+
+<apex:form >
+　　　　　　　　<ul class="sectionSummary__attent">
+            <li class="sectionSummary__attent__txt" style="font-size: 16px;font-weight: bold;">最後に入力されたすべての情報をご確認ください。 </li>
+        </ul>
+        
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                お客様情報
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <div class="confirm-data">
+                        <div class="form-group">
+                            <label for="InputLastName">氏名</label>
+                            <div>
+                                <div class="table-area">
+                                    <div class="table-kana">
+                                        <div>{! mpOpportunity__c.FormCustomerKanaNameLast__c}</div>
+                                        <div>{! mpOpportunity__c.FormCustomerKanaNameFirst__c}</div>
+                                    </div>
+                                    <div>
+                                        <div>{! mpOpportunity__c.LastName__c}</div>
+                                        <div>{! mpOpportunity__c.FirstName__c}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="{! IF(OR(mpOpportunity__c.CorporateForm__c == '法人', mpOpportunity__c.RepreNationality__c == ''), 'display:none;', '')}">
+                            <label>国籍</label>
+                            <span>{! HTMLENCODE(mpOpportunity__c.RepreNationality__c)}</span>
+                        </div>
+
+                        <div class="form-group" style="{! IF(OR(mpOpportunity__c.CorporateForm__c == '法人', mpOpportunity__c.RepreNationality__c == ''), 'display:none;', '')}">
+                            <label>氏名（アルファベット表記）</label>
+                            <span>{! HTMLENCODE(mpOpportunity__c.RepreNameInRomanLetters__c)}</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="InputDept">部署名</label>
+                            <div>
+                            <apex:outputField value="{! mpOpportunity__c.FormCustomerDepartment__c}" styleclass="form-control" />
+                            <apex:outputPanel rendered="{! mpOpportunity__c.FormCustomerDepartment__c == ''}"><span style="color:#aaa">(未入力)</span></apex:outputPanel>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="InputPhone">連絡先電話番号</label>
+                            <apex:outputField value="{! mpOpportunity__c.FormCustomerPhone__c}" styleclass="form-control" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                事業形態
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <div class="confirm-data">
+                        <div class="form-group">
+                            <label for="CorporateForm">事業形態</label>
+                            <apex:outputField value="{! mpOpportunity__c.CorporateForm__c}" styleclass="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label>契約種別</label>
+                            <apex:outputField value="{! mpOpportunity__c.AgreementType__c}" styleclass="form-control" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+        
+        <apex:variable var="companyViewName" value="法人" rendered="{! mpOpportunity__c.CorporateForm__c != '個人事業主'}"/>
+        <apex:variable var="companyViewName" value="個人事業主" rendered="{! mpOpportunity__c.CorporateForm__c == '個人事業主'}"/>
+
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                {!companyViewName}情報
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <!-- 左列の入力 -->
+                    <div class="confirm-data">
+                        <!-- ２列バターン -->
+                        <div class="form-group">
+                            <label for="InputCorpName">{!companyViewName}名</label>
+                            <div>
+                                <div class="table-area">
+                                    <div class="table-kana">
+                                        <div>{! mpOpportunity__c.NameKana__c}</div>
+                                    </div>
+                                    <div>
+                                        <div>{! mpOpportunity__c.Name}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="InputCorpPhone">代表電話番号</label>
+                            <apex:outputField value="{! mpOpportunity__c.Phone__c}" styleclass="form-control" />
+                        </div>
+
+                        <div class="form-group" style="{! IF(mpOpportunity__c.CorporateForm__c == '個人事業主', 'display:none;', '')}" >
+                            <label for="CorporateNumber">法人番号</label>
+                            <div>
+                            <apex:outputField value="{! mpOpportunity__c.CorporateNumber__c}" styleclass="form-control" />
+                            <apex:outputPanel rendered="{! mpOpportunity__c.CorporateNumber__c == ''}"><span style="color:#aaa">(未入力)</span></apex:outputPanel>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                        <label>住所</label>
+                        <div>
+                            <div>
+                                〒&nbsp;{! mpOpportunity__c.PostalCode__c}
+                            </div>
+                            <div>
+                                <div class="table-area">
+                                    <div class="table-kana">
+                                        <div>&nbsp;</div>
+                                        <div>{! mpOpportunity__c.CityKana__c}</div>
+                                    </div>
+                                    <div>
+                                        <div>{! mpOpportunity__c.Prefectures__c}</div>
+                                        <div>{! mpOpportunity__c.City__c}</div>
+                                    </div>
+                                    <div class="table-kana">
+                                        <div>&nbsp;</div>
+                                        <div>{! mpOpportunity__c.TownNameKana__c}</div>
+                                    </div>
+                                    <div>
+                                        <div>&nbsp;</div>
+                                        <div>{! mpOpportunity__c.TownName__c}</div>
+                                    </div>
+                                    <div>
+                                        <div>&nbsp;</div>
+                                        <div>{! mpOpportunity__c.FormSectionStreetNumber__c}</div>
+                                    </div>
+                                    <div class="table-kana">
+                                        <div></div>
+                                        <div>{! mpOpportunity__c.FormBuildingNumber__c}</div>
+                                    </div>
+                                    <div>
+                                        <div>&nbsp;</div>
+                                        <div>
+                                        {! mpOpportunity__c.BuildingNumber__c}
+                                        <apex:outputPanel rendered="{! mpOpportunity__c.BuildingNumber__c == ''}"><span style="color:#aaa">(建物名なし)</span></apex:outputPanel></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                代表者情報
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <div class="confirm-data">
+                        <!-- ２列バターン -->
+                        <div class="form-group">
+                            <label for="InputRepreLastName">氏名</label>
+                            <div>
+                                <div class="table-area">
+                                    <div class="table-kana">
+                                        <div>{! mpOpportunity__c.RepresentativeKanaNameLast__c}</div>
+                                        <div>{! mpOpportunity__c.RepresentativeKanaNameFirst__c}</div>
+                                    </div>
+                                    <div>
+                                        <div>{! mpOpportunity__c.RepreLastName__c}</div>
+                                        <div>{! mpOpportunity__c.RepreFirstName__c}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="InputFormBirthday">生年月日</label>
+                            <apex:outputField value="{! mpOpportunity__c.FormBirthday__c}" styleclass="form-control" />
+                        </div>
+                        
+                        <div class="form-group" style="{! IF(OR(mpOpportunity__c.CorporateForm__c == '個人事業主', mpOpportunity__c.RepreNationality__c == ''), 'display:none;', '')}">
+                            <label>国籍</label>
+                            <span><apex:outputText value="{! mpOpportunity__c.RepreNationality__c}" /></span>
+                        </div>
+
+                        <div class="form-group" style="{! IF(OR(mpOpportunity__c.CorporateForm__c == '個人事業主', mpOpportunity__c.RepreNationality__c == ''), 'display:none;', '')}">
+                            <label>氏名（アルファベット表記）</label>
+                            <span><apex:outputText value="{! mpOpportunity__c.RepreNameInRomanLetters__c}" /></span>
+                        </div>
+
+                        <div class="form-group" style="{!IF(mpOpportunity__c.CorporateForm__c != '法人', 'display:none;' , '')}">
+                            <label>代表者自宅住所</label>
+                            <div>
+                                <div>
+                                    〒&nbsp;{! mpOpportunity__c.ReprePostalCode__c}
+                                    <apex:outputPanel rendered="{! mpOpportunity__c.ReprePostalCode__c == ''}"><span style="color:#aaa">(郵便番号なし)</span></apex:outputPanel>
+                                </div>
+                                <div>
+                                    <div>
+                                        <div>
+                                            <div>{! mpOpportunity__c.ReprePrefectures__c}</div>
+                                            <div>{! mpOpportunity__c.RepreCity__c}</div>
+                                            <apex:outputPanel rendered="{! mpOpportunity__c.RepreCity__c == ''}"><span style="color:#aaa">(市区町村なし)</span></apex:outputPanel>
+                                        </div>
+                                        <div>
+                                            <div>{! mpOpportunity__c.RepreTownName__c}</div>
+                                            <apex:outputPanel rendered="{! mpOpportunity__c.RepreTownName__c == ''}"><span style="color:#aaa">(町名なし)</span></apex:outputPanel>
+                                        </div>
+                                        <div>
+                                            <div>{! mpOpportunity__c.RepreSectionStreetNumber__c}</div>
+                                            <apex:outputPanel rendered="{! mpOpportunity__c.RepreSectionStreetNumber__c == ''}"><span style="color:#aaa">(番地なし)</span></apex:outputPanel>
+                                        </div>
+                                        <div>
+                                            <div>
+                                                {! mpOpportunity__c.RepreBuildingNumber__c}
+                                                <apex:outputPanel rendered="{! mpOpportunity__c.RepreBuildingNumber__c == ''}"><span style="color:#aaa">(建物名なし)</span></apex:outputPanel></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+
+        <apex:outputPanel rendered="{! mpOpportunity__c.CorporateForm__c == '法人'}">
+            <apex:variable var="q" value="{! mpInstantSetup.mpBOController.questionsContainer}" />
+            <!-- panel panel-default -->
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    実質的支配者情報
+                </div>
+                <!-- panel-body -->
+                <div class="panel-body">
+                    <div class="container-fluid">
+                        <div class="confirm-data">
+                            <div class="form-group">
+                                <label>お申込みされる法人</label>
+                                <span><apex:outputField value="{! mpOpportunity__c.ListingClassification__c}" /></span>
+                            </div>
+                            <div class="form-group">
+                                <label>実質的支配者</label>
+                                <span>
+                                    <apex:outputPanel layout="none" rendered="{! OR(q.listingClass == '1', q.listingClass == '2', q.listingClass == '3')}">
+                                        申告不要
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{! !OR(q.listingClass == '1', q.listingClass == '2', q.listingClass == '3')}">
+                                        <apex:outputText value="{! IF(q.owner1.isDisplay, 'いる', '代表者のみ')}" />
+                                    </apex:outputPanel>
+                                </span>
+                            </div>
+
+                            <apex:outputPanel layout="none" rendered="{! q.owner1.isDisplay}">
+                                <apex:variable var="owner" value="{! q.owner1}" />
+                                <div class="beneficial-owner">実質的支配者１</div>
+                                <!-- 自然人 -->
+                                <apex:outputPanel layout="none" rendered="{! !owner.isCompany}">
+                                    <div class="form-group">
+                                        <label>氏名</label>
+                                        <div>
+                                            <div class="table-area">
+                                                <apex:outputPanel layout="none" rendered="{! owner.KanaFirstName.isDisplay}">
+                                                    <div class="table-kana">
+                                                        <div>{! owner.KanaFirstName.value}</div>
+                                                        <div>{! owner.KanaLastName.value}</div>
+                                                    </div>
+                                                </apex:outputPanel>
+                                                <apex:outputPanel layout="none" rendered="{! owner.FirstName.isDisplay}">
+                                                    <div>
+                                                        <div>{! owner.FirstName.value}</div>
+                                                        <div>{! owner.LastName.value}</div>
+                                                    </div>
+                                                </apex:outputPanel>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <apex:outputPanel layout="none" rendered="{! owner.BirthdayYear.isDisplay}">
+                                        <div class="form-group">
+                                            <label for="InputFormBirthday">生年月日</label>
+                                            <span><apex:outputText value="{! owner.BirthdayYear.value + '/' + owner.BirthdayMonth.value + '/' + owner.BirthdayDay.value}" /></span>
+                                        </div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{! owner.Country.isDisplay}">
+                                        <div class="form-group">
+                                            <label>居住地住所</label>
+                                            <div>
+                                                <div>
+                                                    <apex:outputText value="{! owner.Country.value}" />
+                                                </div>
+                                                <div>
+                                                    <apex:outputText value="{! owner.ForeignPostalCode.value}" />
+                                                    <apex:outputPanel rendered="{! owner.ForeignPostalCode.value == ''}"><span style="color:#aaa">(郵便番号なし)</span></apex:outputPanel>
+                                                </div>
+                                                <div>
+                                                    <apex:outputText value="{! owner.ForeignAddress.value}" />
+                                                    <apex:outputPanel rendered="{! owner.ForeignAddress.value == ''}"><span style="color:#aaa">(その他住所なし)</span></apex:outputPanel>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{! owner.Prefecture.isDisplay}">
+                                        <div class="form-group">
+                                            <label for="InputFormBirthday">自宅住所_都道府県</label>
+                                            <span><apex:outputText value="{! owner.Prefecture.value}" /></span>
+                                        </div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{! owner.City.isDisplay}">
+                                        <div class="form-group">
+                                            <label for="InputFormBirthday">自宅住所_市区町村以降</label>
+                                            <span><apex:outputText value="{! owner.City.value}" /></span>
+                                        </div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{! owner.Nationality.isDisplay}">
+                                        <div class="form-group">
+                                            <label>国籍</label>
+                                            <span><apex:outputText value="{! owner.Nationality.value}" /></span>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>氏名（アルファベット表記）</label>
+                                            <span><apex:outputText value="{! owner.NameInRomanLetters.value}" /></span>
+                                        </div>
+                                    </apex:outputPanel>
+                                </apex:outputPanel>
+                                <!-- 法人 -->
+                                <apex:outputPanel layout="none" rendered="{! owner.isCompany}">
+                                    <div class="form-group">
+                                        <label>法人名</label>
+                                        <div>
+                                            <div class="table-area">
+                                                <apex:outputPanel layout="none" rendered="{! owner.KanaName.isDisplay}">
+                                                    <div class="table-kana">
+                                                        <div><apex:outputText value="{! owner.KanaName.value}" /></div>
+                                                    </div>
+                                                </apex:outputPanel>
+                                                <apex:outputPanel layout="none" rendered="{! owner.Name.isDisplay}">
+                                                    <div>
+                                                        <div><apex:outputText value="{! owner.Name.value}" /></div>
+                                                    </div>
+                                                </apex:outputPanel>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <apex:outputPanel layout="none" rendered="{! owner.Country.isDisplay}">
+                                        <div class="form-group">
+                                            <label>所在地住所</label>
+                                            <div>
+                                                <div>
+                                                    <apex:outputText value="{! owner.Country.value}" />
+                                                </div>
+                                                <div>
+                                                    <apex:outputText value="{! owner.ForeignPostalCode.value}" />
+                                                    <apex:outputPanel rendered="{! owner.ForeignPostalCode.value == ''}"><span style="color:#aaa">(郵便番号なし)</span></apex:outputPanel>
+                                                </div>
+                                                <div>
+                                                    <apex:outputText value="{! owner.ForeignAddress.value}" />
+                                                    <apex:outputPanel rendered="{! owner.ForeignAddress.value == ''}"><span style="color:#aaa">(その他住所なし)</span></apex:outputPanel>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{! owner.Prefecture.isDisplay}">
+                                        <div class="form-group">
+                                            <label for="InputFormBirthday">都道府県</label>
+                                            <span><apex:outputText value="{! owner.Prefecture.value}" /></span>
+                                        </div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{! owner.City.isDisplay}">
+                                        <div class="form-group">
+                                            <label for="InputFormBirthday">市区町村以降</label>
+                                            <span><apex:outputText value="{! owner.City.value}" /></span>
+                                        </div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{! owner.CompanyNumber.isDisplay}">
+                                        <div class="form-group">
+                                            <label for="InputFormBirthday">法人番号</label>
+                                            <span>
+                                                <apex:outputText value="{! owner.CompanyNumber.value}" />
+                                                <apex:outputPanel rendered="{! owner.CompanyNumber.value == ''}">
+                                                    <span style="color:#aaa">(法人番号なし)</span>
+                                                </apex:outputPanel>
+                                            </span>
+                                        </div>
+                                    </apex:outputPanel>
+                                </apex:outputPanel>
+                            </apex:outputPanel>
+
+                            <apex:outputPanel layout="none" rendered="{! q.owner2.isDisplay}">
+                                <apex:variable var="owner" value="{! q.owner2}" />
+                                <div class="beneficial-owner">実質的支配者２</div>
+                                <!-- 自然人 -->
+                                <apex:outputPanel layout="none" rendered="{! !owner.isCompany}">
+                                    <div class="form-group">
+                                        <label>氏名</label>
+                                        <div>
+                                            <div class="table-area">
+                                                <apex:outputPanel layout="none" rendered="{! owner.KanaFirstName.isDisplay}">
+                                                    <div class="table-kana">
+                                                        <div>{! owner.KanaFirstName.value}</div>
+                                                        <div>{! owner.KanaLastName.value}</div>
+                                                    </div>
+                                                </apex:outputPanel>
+                                                <apex:outputPanel layout="none" rendered="{! owner.FirstName.isDisplay}">
+                                                    <div>
+                                                        <div>{! owner.FirstName.value}</div>
+                                                        <div>{! owner.LastName.value}</div>
+                                                    </div>
+                                                </apex:outputPanel>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <apex:outputPanel layout="none" rendered="{! owner.BirthdayYear.isDisplay}">
+                                        <div class="form-group">
+                                            <label for="InputFormBirthday">生年月日</label>
+                                            <span><apex:outputText value="{! owner.BirthdayYear.value + '/' + owner.BirthdayMonth.value + '/' + owner.BirthdayDay.value}" /></span>
+                                        </div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{! owner.Country.isDisplay}">
+                                        <div class="form-group">
+                                            <label>居住地住所</label>
+                                            <div>
+                                                <div>
+                                                    <apex:outputText value="{! owner.Country.value}" />
+                                                </div>
+                                                <div>
+                                                    <apex:outputText value="{! owner.ForeignPostalCode.value}" />
+                                                    <apex:outputPanel rendered="{! owner.ForeignPostalCode.value == ''}"><span style="color:#aaa">(郵便番号なし)</span></apex:outputPanel>
+                                                </div>
+                                                <div>
+                                                    <apex:outputText value="{! owner.ForeignAddress.value}" />
+                                                    <apex:outputPanel rendered="{! owner.ForeignAddress.value == ''}"><span style="color:#aaa">(その他住所なし)</span></apex:outputPanel>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{! owner.Prefecture.isDisplay}">
+                                        <div class="form-group">
+                                            <label for="InputFormBirthday">自宅住所_都道府県</label>
+                                            <span><apex:outputText value="{! owner.Prefecture.value}" /></span>
+                                        </div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{! owner.City.isDisplay}">
+                                        <div class="form-group">
+                                            <label for="InputFormBirthday">自宅住所_市区町村以降</label>
+                                            <span><apex:outputText value="{! owner.City.value}" /></span>
+                                        </div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{! owner.Nationality.isDisplay}">
+                                        <div class="form-group">
+                                            <label>国籍</label>
+                                            <span><apex:outputText value="{! owner.Nationality.value}" /></span>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>氏名（アルファベット表記）</label>
+                                            <span><apex:outputText value="{! owner.NameInRomanLetters.value}" /></span>
+                                        </div>
+                                    </apex:outputPanel>
+                                </apex:outputPanel>
+                                <!-- 法人 -->
+                                <apex:outputPanel layout="none" rendered="{! owner.isCompany}">
+                                    <div class="form-group">
+                                        <label>法人名</label>
+                                        <div>
+                                            <div class="table-area">
+                                                <apex:outputPanel layout="none" rendered="{! owner.KanaName.isDisplay}">
+                                                    <div class="table-kana">
+                                                        <div><apex:outputText value="{! owner.KanaName.value}" /></div>
+                                                    </div>
+                                                </apex:outputPanel>
+                                                <apex:outputPanel layout="none" rendered="{! owner.Name.isDisplay}">
+                                                    <div>
+                                                        <div><apex:outputText value="{! owner.Name.value}" /></div>
+                                                    </div>
+                                                </apex:outputPanel>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <apex:outputPanel layout="none" rendered="{! owner.Country.isDisplay}">
+                                        <div class="form-group">
+                                            <label>所在地住所</label>
+                                            <div>
+                                                <div>
+                                                    <apex:outputText value="{! owner.Country.value}" />
+                                                </div>
+                                                <div>
+                                                    <apex:outputText value="{! owner.ForeignPostalCode.value}" />
+                                                    <apex:outputPanel rendered="{! owner.ForeignPostalCode.value == ''}"><span style="color:#aaa">(郵便番号なし)</span></apex:outputPanel>
+                                                </div>
+                                                <div>
+                                                    <apex:outputText value="{! owner.ForeignAddress.value}" />
+                                                    <apex:outputPanel rendered="{! owner.ForeignAddress.value == ''}"><span style="color:#aaa">(その他住所なし)</span></apex:outputPanel>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{! owner.Prefecture.isDisplay}">
+                                        <div class="form-group">
+                                            <label for="InputFormBirthday">都道府県</label>
+                                            <span><apex:outputText value="{! owner.Prefecture.value}" /></span>
+                                        </div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{! owner.City.isDisplay}">
+                                        <div class="form-group">
+                                            <label for="InputFormBirthday">市区町村以降</label>
+                                            <span><apex:outputText value="{! owner.City.value}" /></span>
+                                        </div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{! owner.CompanyNumber.isDisplay}">
+                                        <div class="form-group">
+                                            <label for="InputFormBirthday">法人番号</label>
+                                            <span>
+                                                <apex:outputText value="{! owner.CompanyNumber.value}" />
+                                                <apex:outputPanel rendered="{! owner.CompanyNumber.value == ''}">
+                                                    <span style="color:#aaa">(法人番号なし)</span>
+                                                </apex:outputPanel>
+                                            </span>
+                                        </div>
+                                    </apex:outputPanel>
+                                </apex:outputPanel>
+                            </apex:outputPanel>
+
+                            <apex:outputPanel layout="none" rendered="{! q.owner3.isDisplay}">
+                                <apex:variable var="owner" value="{! q.owner3}" />
+                                <div class="beneficial-owner">実質的支配者３</div>
+                                <!-- 自然人 -->
+                                <apex:outputPanel layout="none" rendered="{! !owner.isCompany}">
+                                    <div class="form-group">
+                                        <label>氏名</label>
+                                        <div>
+                                            <div class="table-area">
+                                                <apex:outputPanel layout="none" rendered="{! owner.KanaFirstName.isDisplay}">
+                                                    <div class="table-kana">
+                                                        <div>{! owner.KanaFirstName.value}</div>
+                                                        <div>{! owner.KanaLastName.value}</div>
+                                                    </div>
+                                                </apex:outputPanel>
+                                                <apex:outputPanel layout="none" rendered="{! owner.FirstName.isDisplay}">
+                                                    <div>
+                                                        <div>{! owner.FirstName.value}</div>
+                                                        <div>{! owner.LastName.value}</div>
+                                                    </div>
+                                                </apex:outputPanel>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <apex:outputPanel layout="none" rendered="{! owner.BirthdayYear.isDisplay}">
+                                        <div class="form-group">
+                                            <label for="InputFormBirthday">生年月日</label>
+                                            <span><apex:outputText value="{! owner.BirthdayYear.value + '/' + owner.BirthdayMonth.value + '/' + owner.BirthdayDay.value}" /></span>
+                                        </div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{! owner.Country.isDisplay}">
+                                        <div class="form-group">
+                                            <label>居住地住所</label>
+                                            <div>
+                                                <div>
+                                                    <apex:outputText value="{! owner.Country.value}" />
+                                                </div>
+                                                <div>
+                                                    <apex:outputText value="{! owner.ForeignPostalCode.value}" />
+                                                    <apex:outputPanel rendered="{! owner.ForeignPostalCode.value == ''}"><span style="color:#aaa">(郵便番号なし)</span></apex:outputPanel>
+                                                </div>
+                                                <div>
+                                                    <apex:outputText value="{! owner.ForeignAddress.value}" />
+                                                    <apex:outputPanel rendered="{! owner.ForeignAddress.value == ''}"><span style="color:#aaa">(その他住所なし)</span></apex:outputPanel>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{! owner.Prefecture.isDisplay}">
+                                        <div class="form-group">
+                                            <label for="InputFormBirthday">自宅住所_都道府県</label>
+                                            <span><apex:outputText value="{! owner.Prefecture.value}" /></span>
+                                        </div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{! owner.City.isDisplay}">
+                                        <div class="form-group">
+                                            <label for="InputFormBirthday">自宅住所_市区町村以降</label>
+                                            <span><apex:outputText value="{! owner.City.value}" /></span>
+                                        </div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{! owner.Nationality.isDisplay}">
+                                        <div class="form-group">
+                                            <label>国籍</label>
+                                            <span><apex:outputText value="{! owner.Nationality.value}" /></span>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>氏名（アルファベット表記）</label>
+                                            <span><apex:outputText value="{! owner.NameInRomanLetters.value}" /></span>
+                                        </div>
+                                    </apex:outputPanel>
+                                </apex:outputPanel>
+                                <!-- 法人 -->
+                                <apex:outputPanel layout="none" rendered="{! owner.isCompany}">
+                                    <div class="form-group">
+                                        <label>法人名</label>
+                                        <div>
+                                            <div class="table-area">
+                                                <apex:outputPanel layout="none" rendered="{! owner.KanaName.isDisplay}">
+                                                    <div class="table-kana">
+                                                        <div><apex:outputText value="{! owner.KanaName.value}" /></div>
+                                                    </div>
+                                                </apex:outputPanel>
+                                                <apex:outputPanel layout="none" rendered="{! owner.Name.isDisplay}">
+                                                    <div>
+                                                        <div><apex:outputText value="{! owner.Name.value}" /></div>
+                                                    </div>
+                                                </apex:outputPanel>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <apex:outputPanel layout="none" rendered="{! owner.Country.isDisplay}">
+                                        <div class="form-group">
+                                            <label>所在地住所</label>
+                                            <div>
+                                                <div>
+                                                    <apex:outputText value="{! owner.Country.value}" />
+                                                </div>
+                                                <div>
+                                                    <apex:outputText value="{! owner.ForeignPostalCode.value}" />
+                                                    <apex:outputPanel rendered="{! owner.ForeignPostalCode.value == ''}"><span style="color:#aaa">(郵便番号なし)</span></apex:outputPanel>
+                                                </div>
+                                                <div>
+                                                    <apex:outputText value="{! owner.ForeignAddress.value}" />
+                                                    <apex:outputPanel rendered="{! owner.ForeignAddress.value == ''}"><span style="color:#aaa">(その他住所なし)</span></apex:outputPanel>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{! owner.Prefecture.isDisplay}">
+                                        <div class="form-group">
+                                            <label for="InputFormBirthday">都道府県</label>
+                                            <span><apex:outputText value="{! owner.Prefecture.value}" /></span>
+                                        </div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{! owner.City.isDisplay}">
+                                        <div class="form-group">
+                                            <label for="InputFormBirthday">市区町村以降</label>
+                                            <span><apex:outputText value="{! owner.City.value}" /></span>
+                                        </div>
+                                    </apex:outputPanel>
+                                    <apex:outputPanel layout="none" rendered="{! owner.CompanyNumber.isDisplay}">
+                                        <div class="form-group">
+                                            <label for="InputFormBirthday">法人番号</label>
+                                            <span>
+                                                <apex:outputText value="{! owner.CompanyNumber.value}" />
+                                                <apex:outputPanel rendered="{! owner.CompanyNumber.value == ''}">
+                                                    <span style="color:#aaa">(法人番号なし)</span>
+                                                </apex:outputPanel>
+                                            </span>
+                                        </div>
+                                    </apex:outputPanel>
+                                </apex:outputPanel>
+                            </apex:outputPanel>
+                        </div>
+                    </div>
+                </div>
+                <!--  /panel-body -->
+            </div>
+            <!-- /panel panel-default -->
+        </apex:outputPanel>
+        
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                加盟店情報
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <apex:outputField value="{! mpOpportunity__c.FormSameAddress__c}" style="margin-top:5px;"   /><span style="font-size:14px;">{!mpOpportunity__c.CorporateForm__c}住所と同じ</span>
+
+                    <div class="confirm-data">
+
+                        <div class="form-group">
+                            <label for="InputFormStoreName">屋号名</label>
+                            <div>
+                                <div class="table-area">
+                                    <div class="table-kana">
+                                        <div>{! mpOpportunity__c.FormStoreKanaName__c}</div>
+                                    </div>
+                                    <div>
+                                        <div>{! mpOpportunity__c.FormStoreName__c}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                        <label>住所</label>
+                        <div>
+                            <div>
+                                <div>
+                                    〒&nbsp;{! mpOpportunity__c.FormNoCorpPostalCode__c}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="table-area">
+                                    <div class="table-kana">
+                                        <div>&nbsp;</div>
+                                        <div>{! mpOpportunity__c.FormNoCorpCityKana__c}</div>
+                                    </div>
+                                    <div>
+                                        <div>{! mpOpportunity__c.FormNoCorpPrefectures__c}</div>
+                                        <div>{! mpOpportunity__c.FormNoCorpCity__c}</div>
+                                    </div>
+                                    <div class="table-kana">
+                                        <div>&nbsp;</div>
+                                        <div>{! mpOpportunity__c.FormNoCorpTownNameKana__c}</div>
+                                    </div>
+                                    <div>
+                                        <div>&nbsp;</div>
+                                        <div>{! mpOpportunity__c.FormNoCorpTownName__c}</div>
+                                    </div>
+                                    <div>
+                                        <div>&nbsp;</div>
+                                        <div>{! mpOpportunity__c.FormNoCorpFormSectionStreetNumber__c}</div>
+                                    </div>
+                                    <div class="table-kana">
+                                        <div></div>
+                                        <div>{! mpOpportunity__c.FormNoCorpFormBuildingNumber__c}</div>
+                                    </div>
+                                    <div>
+                                        <div>&nbsp;</div>
+                                        <div>
+                                        {! mpOpportunity__c.FormNoCorpBuildingNumber__c}
+                                        <apex:outputPanel rendered="{! mpOpportunity__c.FormNoCorpBuildingNumber__c == ''}"><span style="color:#aaa">(建物名なし)</span></apex:outputPanel></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+
+
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                店舗情報
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <div class="confirm-data">
+
+                        <div class="form-group">
+                            <label for="InputShopName">店舗名</label>
+                            <div>
+                                <div class="table-area">
+                                    <div class="table-kana">
+                                        <div>{! mpOpportunity__c.ShopNameKana__c}</div>
+                                    </div>
+                                    <div>
+                                        <div>
+                                            {! mpOpportunity__c.ShopName__c}
+                                            <apex:outputPanel rendered="{! mpOpportunity__c.ShopName__c == ''}"><span style="color:#aaa">(未入力)</span></apex:outputPanel>
+                                        </div>
+                                    </div>
+                                </div>
+    
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="StorePhoneNumber">店舗電話番号&nbsp;</label>
+                            <apex:outputField value="{! mpOpportunity__c.StorePhoneNumber__c}" styleclass="form-control" id="StorePhoneNumber" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>店舗住所&nbsp;</label><span style="color:#333">(加盟店住所が店舗住所として登録されます)</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="InputURL">店舗ホームページURL&nbsp;</label>
+                            <div>
+                                <apex:outputField value="{! mpOpportunity__c.URL__c}" styleclass="form-control" id="InputURL" html-placeholder="https://paypay.ne.jp/" />
+                                <apex:outputPanel rendered="{! mpOpportunity__c.URL__c == ''}"><span style="color:#aaa">(未入力)</span></apex:outputPanel>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                販売形態、お取り扱い商品
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <div class="confirm-data">
+                        <div class="form-group">
+                            <label for="InputFormStoreSales">販売形態</label>
+                            <apex:outputField value="{! mpOpportunity__c.FormStoreSales__c}" styleclass="form-control" id="InputFormStoreSales" />
+                        </div>
+                        <div class="form-group">
+                            <label for="InputProductNameETC">提供サービス詳細</label>
+                            <div>
+                                <apex:outputField value="{! mpOpportunity__c.ProductNameETC__c}" styleclass="form-control" id="InputProductNameETC" html-placeholder="" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="InputMerchandiseClassification">お取り扱い商品</label>
+                            <div>
+                                【{! mpOpportunity__c.MerchandiseClassification__c}】{! mpOpportunity__c.ProductName__c}
+                            </div>
+                        </div>
+                        <apex:outputText rendered="{!mpOpportunity__c.AgreementOfWalletOnlyPrecaution__c}">
+                        <div class="form-group">
+                            <div class="checkbox">
+                                <apex:outputField value="{! mpOpportunity__c.AgreementOfWalletOnlyPrecaution__c}" style="margin-top:5px;"  />
+                                <span style="font-size:14px;">支払い方法に関して、注意事項を確認しました。</span>
+                            </div>
+                            <div style="font-size:80%;padding-left:10px;padding-bottom:5px;">
+                                <apex:outputText rendered="{!mpInstantSetup.isMoneyOnlyProduct}">
+                                <div>
+                                    【マネー限定】がついている商材については「PayPayマネー」のみ取扱いが可能となります。<br />
+                                    「PayPayマネーライト」「PayPayポイント」「PayPayポイントライト」「クレジットカード」および「クレジット（旧あと払い）」の取扱いはできませんのでご注意下さい。
+                                </div>
+                                </apex:outputText>
+                                <apex:outputText rendered="{!mpInstantSetup.isBalanceOnlyProduct}">
+                                <div>
+                                    【残高限定】がついている商材については「PayPay残高」のみ取扱いが可能となります。<br />
+                                    「クレジットカード」「クレジット（旧あと払い）」の取扱いはできませんのでご注意下さい。<br />
+                                    ※PayPay残高の詳細については<a href="https://paypay.ne.jp/help/c0048/" target="_blank">コチラ</a>をご確認ください。
+                                </div>
+                                </apex:outputText>
+                            </div>
+                        </div>
+                        </apex:outputText>
+                        <apex:outputText rendered="{!mpOpportunity__c.AgreementOfSpecifiedContinuousServices__c}">
+                        <div class="form-group">
+                            <div class="checkbox">
+                                <apex:outputField value="{! mpOpportunity__c.AgreementOfSpecifiedContinuousServices__c}" style="margin-top:5px;"  />
+                                <span style="font-size:14px;">特定継続的役務に関して、注意事項を確認しました。</span>
+                            </div>
+                            <ul style="font-size:80%;list-style:disc;">
+                                <li>商品／サービス等に関するPayPayユーザーからのクレームやトラブル等については、加盟店様の責任と費用において解決を図ること。</li>
+                                <li>特定商取引に関する法律等に基づき、PayPayユーザーに書面交付を行うこと。また、当該書面等によりクーリング・オフや解約方法等について説明すること。</li>
+                            </ul>
+                        </div>
+                        </apex:outputText>
+                    </div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+        
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                店舗外観内観画像
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <div class="confirm-data">
+                        <div class="form-group">
+                            <label for="InputFormStoreSales">店舗外観</label>
+                            <div>
+                            <span style="{! IF(mpInstantSetup.isUploadedStoreOutCheck, '', 'display:none;')}">写真登録済みです</span>
+                            <span style="{! IF(mpInstantSetup.isUploadedStoreOutCheck, 'display:none;', '')}">（未登録）</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="InputProductNameETC">店舗内観</label>
+                            <div>
+                            <span style="{! IF(mpInstantSetup.isUploadedStoreInCheck, '', 'display:none;')}">写真登録済みです</span>
+                            <span style="{! IF(mpInstantSetup.isUploadedStoreInCheck, 'display:none;', '')}">（未登録）</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+    
+        <!-- panel panel-default -->
+        <apex:outputText >             
+            <div class="panel panel-default AlipayCheckboxPanel">
+            <div class="panel-heading">
+                アリペイプラスサービス決済
+            </div>
+            <div class="panel-body">
+                <div class="container-fluid">                    
+                        <div class="checkbox form-group">
+                            <apex:outputField value="{! mpOpportunity__c.AlipaySettlement__c}" style="margin-top:5px;"/>
+                            <span style="font-size:14px;">アリペイプラスサービス決済の利用を希望し、アリペイプラス利用特約に同意いたします。</span>
+                        </div>
+                        <p style="font-size:12px; color:#333; margin-left:24px;">
+                            <a href="https://about.paypay.ne.jp/terms/merchant/rule/alipay/" target="_blank">アリペイプラス利用特約</a> 
+                        </p>
+                </div>
+            </div>
+        </div>
+        </apex:outputText>
+        <!-- panel panel-default -->
+        
+        <!-- panel panel-default -->
+        <apex:outputText rendered="{!IF(contains(mpOpportunity__c.ProductName__c, 'マネー限定'), False, True)}">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                HIVEX決済
+            </div>
+            <div class="panel-body">
+                <div class="container-fluid">
+                    
+                        <div class="checkbox form-group">
+                            <apex:outputField value="{! mpOpportunity__c.hivexEnable__c}" style="margin-top:5px;"/>
+                            <span style="font-size:14px;">HIVEX決済の利用を希望し、 HIVEX利用特約にも同意いたします </span>
+                        </div>
+                        <p style="font-size:12px; color:#333; margin-left:24px;">
+                            <a href="https://about.paypay.ne.jp/terms/merchant/rule/hivex/" target="_blank">HIVEX利用特約</a> 
+                        </p>
+                </div>
+            </div>
+        </div>
+        </apex:outputText>
+        <!-- panel panel-default -->
+
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                決済システム利用料
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                <div class="row">
+                    <div class="col-xs-12 col-md-12">
+                        <div class="form-group">
+                            {! IF(mpOpportunity__c.CommissionPercentage__c == null, 1.98, mpOpportunity__c.CommissionPercentage__c)}%
+
+                            <div class="checkbox">
+                                <apex:outputField value="{! mpOpportunity__c.CommissionAgreement__c}" style="margin-top:5px;"   />
+                                <span style="font-size:14px;">上記の料率に同意します。</span>
+                                        <p style="font-size:12px; color:#aaa; margin-left:24px;">
+                                            ※<a href="https://about.paypay.ne.jp/terms/merchant/rule/store/" target="_blank">PayPay加盟店規約　第14条</a>に基づき、上記決済システム利用料を支払う事に同意します。<br />
+                                            ※消費税については、別途規約に記載するものといたします。
+                                        </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                法令等
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                <div class="row sampleRow">
+                    <div class="col-xs-12 col-md-12">
+                        <div class="form-group">
+                            <div class="checkbox">
+                                <apex:outputField value="{! mpOpportunity__c.CommercialViolationHistory__c}" style="margin-top:5px;"  />
+                                <span style="font-size:14px;">当社（当店）は直近5年間に、特定商取引法による行政処分または消費者契約法違反を理由とする敗訴判決を受けたことはありません。 </span>
+                            </div>    
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                規約等
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                <div class="row sampleRow">
+                    <div class="col-xs-12 col-md-12">
+                        <div class="form-group">
+                            <div class="checkbox">
+                                <apex:outputField value="{! mpOpportunity__c.YJPayChangeAgreement__c}" style="margin-top:5px;"   />
+                                <span style="font-size:14px;">以下の規約等に同意します。</span>
+                                        <p style="font-size:12px; color:#aaa; margin-left:24px;">
+                                            <a href="https://about.paypay.ne.jp/terms/merchant/rule/store/" target="_blank">PayPay加盟店規約</a><br />
+                                            <a href="https://about.paypay.ne.jp/terms/?merchant-offline/" target="_blank">PayPay加盟店ガイドライン</a><br />
+                                            <!--
+                                            <a href="https://www.pay2.jp/docs/terms/paypay_balance_merchant_terms.pdf" target="_blank">PayPayマネー加盟店規約</a><br />
+                                            <a href="https://www.pay2.jp/docs/terms/bl_merchant_tandc.pdf" target="_blank">Yahoo!マネー加盟店規約（実店舗決済用）</a><br />
+                                            <a href="https://www.pay2.jp/docs/terms/privacy/" target="_blank">プライバシーポリシー</a><br />
+                                            -->
+                                            <!--<apex:outputText rendered="{! !mpOpportunity__c.CommissionTargetFlag__c}">
+                                                決済システム利用料は、2021年10月1日以降有料となります。（2021年9月30日まで無料）<br />
+                                                詳細は<a href="https://paypay.ne.jp/merchant/info202110/" target="_blank">こちら</a><br />
+                                                ・PayPay決済が発生しない場合、上記のPayPay決済システム利用料は発生しません。 
+                                            </apex:outputText>-->
+                                        </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+
+        <apex:outputText rendered="{!OR(mpInstantSetup.NewMerchantCampSetting['isOpen'] == '1', mpOpportunity__c.PayPayNewMerchantCamp__c)}">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                キャンペーン
+            </div>
+            <div class="panel-body">
+                <div class="container-fluid">
+                <div class="row sampleRow">
+                    <div class="col-xs-12 col-md-12">
+                        <div class="form-group">
+                            <div class="checkbox">
+                                <apex:outputField value="{! mpOpportunity__c.PayPayNewMerchantCamp__c}" style="margin-top:5px;"   />
+                                <span style="font-size:14px;">「{!mpInstantSetup.NewMerchantCampSetting['name']}」の適用条件に同意し、申込をします。</span>
+                                <p style="font-size:12px; color:#aaa; margin-left:24px;">
+                                    ※キャンペーン詳細は<a href="{!mpInstantSetup.NewMerchantCampSetting['url']}" target="_blank">こちら</a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+        </apex:outputText>
+        
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                入金先の金融機関情報
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <apex:outputPanel rendered="{! !mpOpportunity__c.JapanPostBankFlag__c}">
+                    <div class="confirm-data">
+                        <div class="form-group">
+                            <label>入金先口座の契約種類</label>
+                            <div>
+                                <apex:outputField value="{! mpOpportunity__c.DepositAccountType__c}" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>金融機関</label>
+                            <div>
+                                <div>{! mpOpportunity__c.FinancialInstitutionLabel__c}</div>
+                                <div>{! mpOpportunity__c.BranchLabel__c}</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>口座種別</label>
+                            <div>{! mpOpportunity__c.AccountType__c}</div>
+                        </div>
+                        <div class="form-group">
+                            <label>口座番号</label>
+                            <div>{! mpOpportunity__c.AccountNumber__c}</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="InputPhone">口座名義（カナ）</label>
+                            <div>{! mpOpportunity__c.AccountHolder__c}</div>
+                        </div>
+                    </div>
+                    </apex:outputPanel>
+                    <apex:outputPanel rendered="{! mpOpportunity__c.JapanPostBankFlag__c}">
+                    <div class="confirm-data">
+                        <div class="form-group">
+                            <label>入金先口座の契約種類</label>
+                            <div>
+                                <apex:outputField value="{! mpOpportunity__c.DepositAccountType__c}" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>金融機関</label>
+                            <div>{! mpOpportunity__c.FinancialInstitutionLabel__c}</div>
+                        </div>
+                        <div class="form-group">
+                            <label>口座種別</label>
+                            <div>{! mpOpportunity__c.AccountType__c}</div>
+                        </div>
+                        <div class="form-group">
+                            <label>記号</label>
+                            <div>{! mpOpportunity__c.JapanPostBankSymbol__c}</div>
+                        </div>
+                        <div class="form-group">
+                            <label>番号</label>
+                            <div>{! mpOpportunity__c.JapanPostBankNumber__c}</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="InputPhone">口座名義（カナ）</label>
+                            <div>{! mpOpportunity__c.AccountHolder__c}</div>
+                        </div>
+                    </div>
+                    </apex:outputPanel>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                振込サイクル
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <apex:outputText rendered="{! mpOpportunity__c.PayCyclePattern__c == 'エンプラ'}">
+                        <div class="confirm-data">
+                            <div class="form-group">
+                                <label>振込サイクル</label>
+                                <div>
+                                    <apex:outputText rendered="{! mpOpportunity__c.PayCycle__c == '月１回(末締め末払)'}"><div>月1回（月末日締め、翌月末営業日払い）</div></apex:outputText>
+                                    <apex:outputText rendered="{! mpOpportunity__c.PayCycle__c == '月２回(15締末払)'}"><div>月2回（15日締め、当月末営業日払い・月末締め、翌月15日払い）</div></apex:outputText>
+                                </div>
+                            </div>
+                        </div>
+                    </apex:outputText>
+                    <apex:outputText rendered="{! mpOpportunity__c.PayCyclePattern__c != 'エンプラ'}">
+                        <div class="confirm-data">
+                            <div class="form-group">
+                                <label>振込サイクル</label>
+                                <div>
+                                    {!IF(mpOpportunity__c.EarlyPayoutCycle__c, '翌日※/翌々営業日入金', '月１回')}<br />
+                                    <apex:outputText rendered="{!mpOpportunity__c.EarlyPayoutCycle__c}">
+                                        <span style="font-size:80%;">※翌日入金はPayPay銀行の口座が対象です。</span>
+                                    </apex:outputText>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="confirm-data checkbox">
+                            <div class="form-group">
+                                <apex:outputField value="{! mpOpportunity__c.EarlyPayoutCycle__c}" style="margin-top:5px;" /><span>早期振込サービス（自動）規約に同意し、早期振込サービス（自動）に申込む。</span>
+                            </div>
+                        </div>
+                    </apex:outputText>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+
+        <apex:outputPanel rendered="{!mpInstantSetup.ShowMap}">
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                地図
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <div class="confirm-data">
+                        <div class="form-group">
+                            <label for="InputRepreLastName">地図掲載開始予定日</label>
+                            <apex:outputPanel rendered="{! mpOpportunity__c.MapDisplayTime__c == 'キット到着後、約１週間後に掲載'}"><div>約1週間以内に掲載</div></apex:outputPanel>
+                            <apex:outputPanel rendered="{! mpOpportunity__c.MapDisplayTime__c == '審査可決後、約1ヵ月後に掲載'}"><div>約1ヵ月後に掲載</div></apex:outputPanel>
+                            <apex:outputPanel rendered="{! mpOpportunity__c.MapDisplayTime__c == '審査可決後、約3ヵ月後に掲載'}"><div>約3ヵ月後に掲載</div></apex:outputPanel>
+                        </div>
+                    </div>
+                    <div id="map" style="width:100%; height:480px; max-width:100%;"></div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+        </apex:outputPanel>
+
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                許認可等の確認
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                <div class="row">
+                    <div class="confirm-data checkbox">
+                        <div class="form-group">
+                            <apex:outputField value="{! mpOpportunity__c.Licensing_Antique__c}" style="margin-top:5px;" /><span>中古品、リサイクル品、古物を扱っています。<br />（古物商許可証の書類が必要になります）</span>
+                        </div>
+                        <div class="form-group">
+                            <apex:outputField value="{! mpOpportunity__c.Licensing_TreatmentPlace__c}" style="margin-top:5px;" /><span>施術所（鍼灸院、治療院、接骨院・整骨院）に該当します。<br />（開設届出済証明書の書類が必要になります）</span>
+                        </div>
+                        <div class="form-group">
+                            <apex:outputField value="{! mpOpportunity__c.Licensing_TravelAgency__c}" style="margin-top:5px;" /><span>旅行代理店に該当します。<br /> （旅行業者登録票の書類が必要になります）</span>
+                        </div>
+                        <div class="form-group">
+                            <apex:outputField value="{! mpOpportunity__c.Licensing_Consultation__c}" style="margin-top:5px;" /><span>医療相談、法律相談を行っています。 <br />（資格認定証／登録証の書類が必要になります）</span>
+                        </div>
+                        <div class="form-group">
+                            <apex:outputField value="{! mpOpportunity__c.Licensing_DrivingAgency__c}" style="margin-top:5px;" /><span>運転代行業に該当します。 <br />（自動車運転代行業認定証の名義と番号がわかる書類が必要になります）</span>
+                        </div>
+                        <!--
+                        <div class="form-group">
+                            <apex:outputField value="{! mpOpportunity__c.Licensing_RealEstate__c}" style="margin-top:5px;" /><span>不動産仲介業に該当します。 <br />（履歴事項全部証明書または宅地建物取引業者の詳細情報と署名済みの注意事項説明書類が必要になります）</span>
+                        </div>
+                        -->
+                        <div class="form-group">
+                            <apex:outputField value="{! mpOpportunity__c.Licensing_SpecifiedContinuousServices__c}" style="margin-top:5px;" /><span>特定継続的役務（学習塾/家庭教師/語学教室/エステ/美容医療/パソコン教室/結婚相手紹介）に該当します。 <br />（別途弊社から決算書（３期分）および履歴事項全部証明書もしくは確定申告書の写しの提出を求める場合があります）</span>
+                        </div>
+                        <div class="form-group">
+                            <apex:outputField value="{! mpOpportunity__c.Licensing_PublicGambling__c}" style="margin-top:5px;" /><span>公営ギャンブルに該当します。 <br />（主催者でない場合、主催者からの販売委託契約書の写しを添付してください）</span>
+                        </div>
+                        　<div class="form-group">
+                            <apex:outputField value="{! mpOpportunity__c.Licensing_InsuranceBusiness__c}" style="margin-top:5px;" /><span>保険業（保険代理店）に該当します。 <br />（代理店委託契約書、または2名分の保険募集人資格登録証か合格証を添付してください。）</span>
+                        </div>
+                        <div class="form-group">
+                            <apex:outputField value="{! mpOpportunity__c.Licensing_TicketSales__c}" style="margin-top:5px;" /><span>興行チケット販売業に該当します。 <br />（チケット不正転売禁止法遵守の同意書（※）を提出してください。二次販売の場合、古物商許可証を添付してください。<br/>※お申し込み受付後に別途弊社所定のフォーマットをご連絡いたします。）</span>
+                        </div>
+                        <div class="form-group">
+                            <apex:outputField value="{! mpOpportunity__c.Licensing_PrepaidCard__c}" style="margin-top:5px;" /><span>商品券・プリペイドカード・交通乗車券販売業に該当します。 <br />（二次販売の場合、古物商許可証を添付してください。）</span>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                自治体等主催のキャンペーンへの参加同意
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                <div class="row">
+                    <div class="col-xs-12 col-md-12">
+                        <div class="form-group">
+                            <div class="checkbox">
+                                <apex:outputField value="{! mpOpportunity__c.InfoAgreementCheck__c}" style="margin-top:5px;"   />
+                                <span style="font-size:14px;">自治体等への加盟店情報連携に同意し、自治体キャンペーンに参加します</span>
+                                <p style="font-size:12px; color:#aaa; margin-left:24px;">
+                                    <a href="https://paypay.ne.jp/store/introduction/jichitai-cp/" target="_blank" rel="noopener noreferrer">自治体等への加盟店情報連携の同意について</a><br />
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="u-mt-20">
+                        <p style="color:red;font-size:12px;margin-bottom:-2px;">※チェックいただいた場合、今後主催者から対象加盟店に選定された際、下記キャンペーンへは自動的に参加となります。</p>
+                        <span style="display:block;text-indent: 1em;font-size:12px;">
+                            <a class="u-text-link blank" href="https://paypay.ne.jp/event/support-local/" target="_blank"><span style="color:red">・自治体等主催のキャンペーンの例</span></a><br />
+                        </span>
+                    </div>
+                    <div class="u-mt-20">
+                        <p style="color:red;font-size:12px;margin-top:15px;">※一部対象外業種については、主催者から選定されても対象外となる場合もあります</p>
+                    </div>
+                </div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                PayPay商品券を活用した事業の参加同意（<span style="color:red">商品券利用情報の外部提供あり</span>）
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                <div class="row">
+                    <div class="col-xs-12 col-md-12">
+                        <div class="form-group">
+                            <div class="checkbox">
+                                <apex:outputField value="{! mpOpportunity__c.PayPayGiftVoucherAgreement__c}" style="margin-top:5px;"   />
+                                <span style="font-size:14px;">自治体等およびふるさと納税ポータルサイト運営会社へのPayPay商品券利用情報提供に同意し、PayPay商品券を活用した事業に参加します</span>
+                                <p style="font-size:12px; color:#aaa; margin-left:24px;">
+                                    <a href="https://paypay.ne.jp/store/introduction/jichitai-gift-vouchers/" target="_blank" rel="noopener noreferrer">自治体等およびふるさと納税ポータルサイト運営会社へのPayPay商品券利用情報提供の同意について</a><br />
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="u-mt-20">
+                    <p style="color:red;font-size:12px;margin-bottom:-2px;">※チェックいただいた場合、今後主催者から対象加盟店に選定された際、下記を含むPayPay商品券を活用した事業へは自動的に参加となります。</p>
+                    <span style="display:block;text-indent: 1em;font-size:12px;">
+                        <a class="u-text-link blank" href="https://paypay.ne.jp/help/c0443/" target="_blank"><span style="color:red">・自治体等が主催するPayPay商品券を活用した事業の例</span></a><br />
+                    </span>
+                    <span style="display:block;text-indent: 1em;font-size:12px;">
+                        <a class="u-text-link blank" href="https://paypay.ne.jp/guide/gift-vouchers/" target="_blank"><span style="color:red">・ふるさと納税ポータルサイト運営会社が自治体と提携し発行するPayPay商品券</span></a><br />
+                    </span>
+                </div>
+                <div class="u-mt-20">
+                    <p style="color:red;font-size:12px;margin-top:15px;">※一部対象外業種については、主催者から選定されても対象外となる場合もあります</p>
+                </div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+    <!-- カスタムメタデータ（PageSkipList__mdt）に該当する[お取り扱い商品2]（ProductName__c）の場合、ライトプラン同時申し込み用パネルは表示しない-->
+        <!-- panel panel-default -->
+        <apex:outputPanel rendered="{! NOT(mpInstantSetup.isSkipProductForLightPlan)}">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    PayPayマイストア　プラン選択
+                </div>
+                <!-- panel-body -->
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <div class="confirm-data">
+                        <div class="form-group">
+                            <label>プラン選択</label>
+                            <div>
+                                <apex:outputText rendered="{! mpOpportunity__c.mystore_kiyakudoui__c}"><div>各種規約に同意し、ライトプランに申し込む</div></apex:outputText>
+                                <apex:outputText rendered="{! NOT(mpOpportunity__c.mystore_kiyakudoui__c)}"><div>制限プランに申し込む</div></apex:outputText>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="confirm-data">
+                        <div class="form-group">
+                            <label>プラン適用日</label>
+                            <div>
+                                <apex:outputField value="{! mpOpportunity__c.AsynchronousOnboarding__c}" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                <!--  /panel-body -->
+            </div>
+        </apex:outputPanel>
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+               加盟店紹介キャンペーン
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <div class="confirm-data">
+                        <!-- ２列バターン -->
+                     <div class="form-group">
+                     <apex:outputField value="{! mpOpportunity__c.CampaignExplained__c}" style="margin-top:5px;" /><span>加盟店紹介キャンペーンの説明をうけました。</span>
+                     </div>
+                     </div>
+                  </div>
+             </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+
+
+
+    <apex:outputPanel rendered="{! mpInstantSetup.showUpload}">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+           許認可書類（原本画像のみ）
+        </div>
+
+        <div class="panel-body">
+            <div class="container-fluid">
+            <div class="row sampleRow">
+                <div class="col-xs-12">
+                    <div class="form-group">
+                        <label>以下の写真画像を添付してください。</label>
+                        <ul style="font-size:90%;">
+                        <apex:outputPanel rendered="{!mpOpportunity__c.Licensing_Antique__c}">
+                            <li>・古物商許可証</li>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!mpOpportunity__c.Licensing_TreatmentPlace__c}">
+                            <li>・施術所の開設届出済証明書</li>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!mpOpportunity__c.Licensing_TravelAgency__c}">
+                            <li>・旅行業者登録票</li>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!mpOpportunity__c.Licensing_Consultation__c}">
+                            <li>・資格認定証／登録証 （例）社会福祉士登録証、精神保健福祉登録証、弁護士身分証明書など</li>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!mpOpportunity__c.Licensing_DrivingAgency__c}">
+                            <li>・自動車運転代行業認定証の名義と番号がわかる書類</li>
+                        </apex:outputPanel>
+                        <!--
+                        <apex:outputPanel rendered="{!mpOpportunity__c.Licensing_RealEstate__c}">
+                            <li>・履歴事項全部証明書または宅地建物取引業者の詳細情報と署名済みの注意事項説明書類</li>
+                        </apex:outputPanel>
+                        -->
+                        <apex:outputPanel rendered="{!mpOpportunity__c.Licensing_SpecifiedContinuousServices__c}">
+                            <li>・決算書（３期分）および履歴事項全部証明書もしくは確定申告書の写し</li>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!mpOpportunity__c.Licensing_PublicGambling__c}">
+                            <li>・公営ギャンブルの主催者でない場合は主催者からの販売委託契約書の写し</li>
+                        </apex:outputPanel>
+                          <apex:outputPanel rendered="{!mpOpportunity__c.Licensing_InsuranceBusiness__c}">
+                            <li>・代理店委託契約書、または2名分の保険募集人資格登録証か合格証</li>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!mpOpportunity__c.Licensing_TicketSales__c}">
+                            <li>・チケット不正転売禁止法遵守の同意書　二次販売の場合、古物商許可証</li>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!mpOpportunity__c.Licensing_PrepaidCard__c}">
+                            <li>・二次販売の場合、古物商許可証</li>
+                        </apex:outputPanel>
+                        
+                        </ul>
+
+                        <apex:outputPanel rendered="{! mpInstantSetup.isUploadedLicense1}">
+                            <div class="row">
+                                <div class="col-sm-8">
+                                    <label>-1枚目（
+                                        <span class="glyphicon glyphicon-ok">書類登録済みです</span>
+                                    ）</label>
+                                </div>
+                            </div>
+                        </apex:outputPanel>
+
+                        <apex:outputPanel rendered="{! mpInstantSetup.isUploadedLicense2}">
+                            <div class="row">
+                                <div class="col-sm-8">
+                                    <label>-2枚目（
+                                        <span class="glyphicon glyphicon-ok">書類登録済みです</span>
+                                    ）</label>
+                                </div>
+                            </div>
+                        </apex:outputPanel>
+
+                        <apex:outputPanel rendered="{! mpInstantSetup.isUploadedLicense3}">
+                            <div class="row">
+                                <div class="col-sm-8">
+                                    <label>-3枚目（
+                                        <span class="glyphicon glyphicon-ok">書類登録済みです</span>
+                                    ）</label>
+                                </div>
+                            </div>
+                        </apex:outputPanel>
+                        
+                        <apex:outputPanel rendered="{! mpInstantSetup.isUploadedLicense4}">
+                            <div class="row">
+                                <div class="col-sm-8">
+                                    <label>-4枚目（
+                                        <span class="glyphicon glyphicon-ok">書類登録済みです</span>
+                                    ）</label>
+                                </div>
+                            </div>
+                        </apex:outputPanel>
+
+                        <apex:outputPanel rendered="{! mpInstantSetup.isUploadedLicense5}">
+                            <div class="row">
+                                <div class="col-sm-8">
+                                    <label>-5枚目（
+                                        <span class="glyphicon glyphicon-ok">書類登録済みです</span>
+                                    ）</label>
+                                </div>
+                            </div>
+                        </apex:outputPanel>
+
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+    </apex:outputPanel>
+
+    <apex:outputPanel rendered="{!mpOpportunity__c.AgreementType__c == '自治体契約'}">
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                【自治体契約】に関する追加情報
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <div class="confirm-data">
+                        <div class="form-group">
+                            <label>決裁番号</label>
+                            <apex:outputField value="{! mpOpportunity__c.LocalGovernmentApprovalNumber__c}" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+    </apex:outputPanel>
+
+    <apex:outputPanel rendered="{!mpOpportunity__c.DepositAccountType__c == '一括入金業務委託契約'}">
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+               【一括入金業務委託契約】に関する追加情報
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <div class="confirm-data">
+                        <div class="form-group">
+                            <label>決裁番号</label>
+                            <apex:outputField value="{! mpOpportunity__c.BulkDepositApprovalNumber__c}" />
+                        </div>
+                        <div class="form-group">
+                            <label>業務委託先 事業者名</label>
+                            <apex:outputField value="{! mpOpportunity__c.BulkDepositCompanyName__c}" />
+                        </div>
+                        <div class="form-group">
+                            <label>業務委託先 事業者名カナ</label>
+                            <apex:outputField value="{! mpOpportunity__c.BulkDepositCompanyNameKana__c}" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+    </apex:outputPanel>
+
+    <apex:outputPanel rendered="{!mpOpportunity__c.DepositAccountType__c == '誓約書契約'}">
+        <!-- panel panel-default -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+               【誓約書契約】に関する追加情報
+            </div>
+            <!-- panel-body -->
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <div class="confirm-data">
+                        <div class="form-group">
+                            <label>誓約書締結先 事業者名</label>
+                            <apex:outputField value="{! mpOpportunity__c.PledgeCompanyName__c}" />
+                        </div>
+                        <div class="form-group">
+                            <label>誓約書締結先 事業者名カナ</label>
+                            <apex:outputField value="{! mpOpportunity__c.PledgeCompanyNameKana__c}" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--  /panel-body -->
+        </div>
+        <!-- /panel panel-default -->
+    </apex:outputPanel>
+
+            <div  class="row" style="padding-top:40px;">
+                <apex:outputPanel rendered="{! mpInstantSetup.uploadFlag}">
+                    <p class="text-center col-xs-6">
+                        <apex:commandButton action="{! mpInstantSetup.step4back}" value="戻る" Styleclass="btnView primary" styleClass="submitBtn btn btn-lg" reRender="includeBody" >
+                            <apex:param name="backIndex" value="1" />
+                        </apex:commandButton>
+                    </p>
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{! !mpInstantSetup.uploadFlag}">
+                    <p class="text-center col-xs-6">
+                        <apex:commandButton action="{! mpInstantSetup.step2back}" value="最初に戻る" Styleclass="btnView primary" styleClass="submitBtn btn btn-lg" reRender="includeBody" />
+                    </p>
+                </apex:outputPanel>
+
+                <p class="text-center  col-xs-6">
+                    <apex:commandButton action="{! mpInstantSetup.confirm}" value="申込む" Styleclass="btnView primary" onclick="return checkSubmit();" styleClass="submitBtn btn-primary btn-lg" />
+                </p>
+            </div>
+            
+            <apex:outputPanel rendered="{! mpInstantSetup.uploadFlag}">
+                <div  class="row" style="padding-top:40px;">
+                    <p class="text-center  col-xs-12">
+                        <apex:commandButton action="{! mpInstantSetup.step2back}" value="最初に戻る" Styleclass="btnView primary" styleClass="submitBtn btn btn-lg" reRender="includeBody" />
+                    </p>
+                </div>
+            </apex:outputPanel>
+
+</apex:form>
+
+</apex:component>
