@@ -110,8 +110,7 @@ export default class MpMapPicker extends LightningElement {
             shadowUrl: LEAFLET_FILES + '/leafletjs/marker-shadow.png'
         });
 
-        // Initialize Leaflet map with optimized zoom levels
-        // Reduced maxZoom to minimize tile requests (OSM recommendation)
+        // Initialize Leaflet map with optimized zoom levels (OSM recommendation)
         const maxZoom = 18;
         const minZoom = 5;
         const initialZoom = this.useCurrentLocation ? 15 : 17;
@@ -127,7 +126,7 @@ export default class MpMapPicker extends LightningElement {
             wheelPxPerZoomLevel: 120
         });
 
-        // Add tile layer with optimization settings
+        // tile layer with optimization settings
         // Leaflet: Copyright (c) 2010-2023, Vladimir Agafonkin, CloudMade (BSD-2-Clause License)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '<a href="https://leafletjs.com" title="A JavaScript library for interactive maps">Leaflet</a> | &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -146,7 +145,7 @@ export default class MpMapPicker extends LightningElement {
             crossOrigin: true
         }).addTo(this.map);
 
-        // Add marker and show it at default coordinates immediately
+        // marker and show it at default coordinates immediately
         this.marker = L.marker([this.latitude, this.longitude], {
             draggable: true
         }).addTo(this.map);
@@ -248,14 +247,12 @@ export default class MpMapPicker extends LightningElement {
         try {
             // Nominatim Usage Policy: https://operations.osmfoundation.org/policies/nominatim/
             // - Limited to 1 request per second
-            // - Proper User-Agent required
-            // - Consider using your own Nominatim instance for production
             const response = await fetch(
                 `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(this.searchQuery)}&limit=1&countrycodes=jp`,
                 {
                     headers: {
                         // Required: Identify your application
-                        'User-Agent': 'PayPay-MapPicker/1.0'
+                        'User-Agent': 'mpMapPicker/1.0'
                     }
                 }
             );
