@@ -19,6 +19,7 @@ import LEAFLET_FILES from '@salesforce/resourceUrl/leafletjs';
 export default class MpMapPicker extends LightningElement {
     @api latitude;
     @api longitude;
+    @api readonly = false;
     
     @track searchQuery = '';
     @track searchError = '';
@@ -33,6 +34,10 @@ export default class MpMapPicker extends LightningElement {
 
     get isSearchDisabled() {
         return !this.searchQuery.trim() || this.isSearching;
+    }
+
+    get showSearch() {
+        return !this.readonly;
     }
 
     renderedCallback() {
@@ -145,28 +150,32 @@ export default class MpMapPicker extends LightningElement {
             crossOrigin: true
         }).addTo(this.map);
 
-        // marker and show it at default coordinates immediately
+        // Add marker and show it at default coordinates immediately
         this.marker = L.marker([this.latitude, this.longitude], {
-            draggable: true
+            draggable: !this.readonly
         }).addTo(this.map);
 
         // Handle map clicks
-        this.map.on('click', (e) => {
-            const lat = e.latlng.lat;
-            const lng = e.latlng.lng;
-            this.updateLocation(lat, lng);
-            
-            // Add marker to map if not already added
-            if (!this.map.hasLayer(this.marker)) {
-                this.marker.addTo(this.map);
-            }
-        });
+        if (!this.readonly) {
+            this.map.on('click', (e) => {
+                const lat = e.latlng.lat;
+                const lng = e.latlng.lng;
+                this.updateLocation(lat, lng);
+                
+                // Add marker to map if not already added
+                if (!this.map.hasLayer(this.marker)) {
+                    this.marker.addTo(this.map);
+                }
+            });
+        }
 
         // Handle marker drag
-        this.marker.on('dragend', (e) => {
-            const position = this.marker.getLatLng();
-            this.updateLocation(position.lat, position.lng);
-        });
+        if (!this.readonly) {
+            this.marker.on('dragend', (e) => {
+                const position = this.marker.getLatLng();
+                this.updateLocation(position.lat, position.lng);
+            });
+        }
 
         // Dispatch event to notify Visualforce page that map is ready
         this.dispatchEvent(new CustomEvent('mapready'));
