@@ -1,10 +1,25 @@
-/* .map-wrapper {
-    padding: 1rem;
-} */
+/* Reset and isolation to prevent VF page styles from affecting the component */
+.map-wrapper {
+    all: initial;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #080707;
+    display: block;
+    box-sizing: border-box;
+}
+
+.map-wrapper *,
+.map-wrapper *::before,
+.map-wrapper *::after {
+    box-sizing: border-box;
+}
 
 .map-instruction {
     margin-bottom: 1rem;
     color: #514f4d;
+    font-size: 14px;
+    line-height: 1.5;
 }
 
 .search-container {
@@ -16,15 +31,32 @@
 
 .search-container lightning-input {
     flex: 1;
+    font-size: 14px;
+}
+
+/* Ensure lightning-input maintains proper size */
+.search-container lightning-input::part(input) {
+    font-size: 14px !important;
+    padding: 0.5rem !important;
+    min-height: 2.5rem !important;
 }
 
 .search-button {
     min-width: 5rem;
+    font-size: 14px !important;
+}
+
+/* Ensure lightning-button maintains proper size */
+.search-button::part(button) {
+    font-size: 14px !important;
+    padding: 0.5rem 1rem !important;
+    min-height: 2.5rem !important;
 }
 
 .map-container {
     margin: 1rem 0;
     border: 1px solid #d8dde6;
+    font-size: 14px;
 }
 
 .coordinates-display {
@@ -42,4 +74,5 @@
 .coordinate-label {
     color: #514f4d;
     font-weight: bold;
+    font-size: 14px;
 }
