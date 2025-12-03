@@ -12,8 +12,10 @@
  *   https://www.openstreetmap.org/copyright
  * 
  */
-import { LightningElement, track, api } from 'lwc';
+import { LightningElement, track, api, wire } from 'lwc';
 import { loadStyle, loadScript } from 'lightning/platformResourceLoader';
+import { publish, MessageContext } from 'lightning/messageService';
+import MAP_LOCATION_CHANNEL from '@salesforce/messageChannel/MapLocationChange__c';
 import LEAFLET_FILES from '@salesforce/resourceUrl/leafletjs';
 
 export default class MpMapPicker extends LightningElement {
@@ -31,6 +33,9 @@ export default class MpMapPicker extends LightningElement {
     leafletInitialized = false;
     useCurrentLocation = false;
     lastSearchTime = 0; // レットリミットのための最終検索時間を追跡
+    
+    @wire(MessageContext)
+    messageContext;
 
     get isSearchDisabled() {
         return !this.searchQuery.trim() || this.isSearching;
@@ -176,15 +181,12 @@ export default class MpMapPicker extends LightningElement {
         this.longitude = parseFloat(lng.toFixed(10));
         this.marker.setLatLng([lat, lng]);
         
-        // 新規位置でイベントを発行する
-        this.dispatchEvent(new CustomEvent('locationchange', {
-            detail: {
-                latitude: this.latitude,
-                longitude: this.longitude
-            },
-            bubbles: true,
-            composed: true
-        }));
+        // Lightning Message Serviceで位置情報を発行する
+        const payload = {
+            latitude: this.latitude,
+            longitude: this.longitude
+        };
+        publish(this.messageContext, MAP_LOCATION_CHANNEL, payload);
     }
 
     @api

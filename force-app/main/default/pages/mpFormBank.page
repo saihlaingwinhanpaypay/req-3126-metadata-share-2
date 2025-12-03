@@ -632,29 +632,19 @@
                                         
                                         <script>
                                             var mapComponentReference = null;
-                                            var lastKnownUpdate = 0;
                                             
-                                            // auraのattributesで緯度経度項目に反映するfunction
-                                            function updateInputFieldsFromComponent() {
-                                                if (!mapComponentReference) return;
-                                                
+                                            // Lightning Message Channelをsubscribeして位置情報を受信
+                                            function handleLocationChangeMessage(message) {
                                                 try {
-                                                    var currentUpdate = mapComponentReference.get("v.lastUpdate");
-                                                    
-                                                    if (currentUpdate && currentUpdate !== lastKnownUpdate) {
-                                                        var latitude = mapComponentReference.get("v.latitude");
-                                                        var longitude = mapComponentReference.get("v.longitude");
-                                                        
+                                                    if (message && message.latitude !== undefined && message.longitude !== undefined) {
                                                         // 入力項目を更新
                                                         var latInput = document.querySelector('input[id*="ylatitude"]');
                                                         var lngInput = document.querySelector('input[id*="ylongitude"]');
                                                         
                                                         if (latInput && lngInput) {
-                                                            latInput.value = latitude;
-                                                            lngInput.value = longitude;
+                                                            latInput.value = message.latitude;
+                                                            lngInput.value = message.longitude;
                                                         }
-                                                        
-                                                        lastKnownUpdate = currentUpdate;
                                                     }
                                                 } catch(e) {
                                                     console.error("Error updating inputs:", e);
@@ -678,8 +668,8 @@
                                                     function(cmp) {
                                                         mapComponentReference = cmp;
                                                         
-                                                        // Poll for attribute changes every 500ms
-                                                        setInterval(updateInputFieldsFromComponent, 500);
+                                                        // Lightning Message Channelにsubscribeする
+                                                        sforce.one.subscribe('/messageChannel/MapLocationChange__c', handleLocationChangeMessage);
                                                     }
                                                 );
                                             });

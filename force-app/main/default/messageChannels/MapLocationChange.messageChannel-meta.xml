@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningMessageChannel xmlns="http://soap.sforce.com/2006/04/metadata">
+    <masterLabel>Map Location Change Channel</masterLabel>
+    <isExposed>true</isExposed>
+    <description>Message channel for communicating map location changes from mpMapPicker to other components</description>
+    <lightningMessageFields>
+        <fieldName>latitude</fieldName>
+        <description>The latitude coordinate</description>
+    </lightningMessageFields>
+    <lightningMessageFields>
+        <fieldName>longitude</fieldName>
+        <description>The longitude coordinate</description>
+    </lightningMessageFields>
+</LightningMessageChannel>

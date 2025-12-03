@@ -3,17 +3,16 @@
         // Initialize component
     },
     
-    handleLocationChange : function(component, event, helper) {
-        // LWC eventから位置情報を取得
-        var detail = event.getParam('detail') || event.detail || event.sq;
-        
-        if (detail && detail.latitude !== undefined && detail.longitude !== undefined) {
-            // attributesを更新する
-            component.set("v.latitude", detail.latitude);
-            component.set("v.longitude", detail.longitude);
+    handleLocationMessage : function(component, message, helper) {
+        // Lightning Message Serviceから位置情報を取得
+        if (message && message.getParam) {
+            var payload = message.getParam('latitude') !== undefined ? message.getParams() : null;
             
-            // Visualforce ページに通知する
-            component.set("v.lastUpdate", new Date().getTime());
+            if (payload && payload.latitude !== undefined && payload.longitude !== undefined) {
+                // attributesを更新する
+                component.set("v.latitude", payload.latitude);
+                component.set("v.longitude", payload.longitude);
+            }
         }
     }
 })
