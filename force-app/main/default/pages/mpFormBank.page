@@ -633,23 +633,32 @@
                                         <script>
                                             var mapComponentReference = null;
                                             
-                                            // Lightning Message Channelをsubscribeして位置情報を受信
-                                            function handleLocationChangeMessage(message) {
+                                            // 入力項目を更新する共通関数
+                                            function updateInputFields(latitude, longitude) {
                                                 try {
-                                                    if (message && message.latitude !== undefined && message.longitude !== undefined) {
-                                                        // 入力項目を更新
-                                                        var latInput = document.querySelector('input[id*="ylatitude"]');
-                                                        var lngInput = document.querySelector('input[id*="ylongitude"]');
-                                                        
-                                                        if (latInput && lngInput) {
-                                                            latInput.value = message.latitude;
-                                                            lngInput.value = message.longitude;
-                                                        }
+                                                    var latInput = document.querySelector('input[id*="ylatitude"]');
+                                                    var lngInput = document.querySelector('input[id*="ylongitude"]');
+                                                    
+                                                    if (latInput && lngInput) {
+                                                        latInput.value = latitude;
+                                                        lngInput.value = longitude;
                                                     }
                                                 } catch(e) {
                                                     console.error("Error updating inputs:", e);
                                                 }
                                             }
+                                            
+                                            // postMessageイベントリスナー
+                                            window.addEventListener('message', function(event) {
+                                                if (event.origin !== window.location.origin) {
+                                                    return;
+                                                }
+                                                
+                                                // mapLocationChangeメッセージを処理
+                                                if (event.data && event.data.type === 'mapLocationChange') {
+                                                    updateInputFields(event.data.latitude, event.data.longitude);
+                                                }
+                                            });
                                             
                                             // Initialize Leaflet Map component
                                             $Lightning.use("c:mpMapPickerApp", function() {
@@ -666,10 +675,7 @@
                                                     },
                                                     "leafletMapContainer",
                                                     function(cmp) {
-                                                        mapComponentReference = cmp;
-                                                        
-                                                        // Lightning Message Channelにsubscribeする
-                                                        sforce.one.subscribe('/messageChannel/MapLocationChange__c', handleLocationChangeMessage);
+                                                        mapComponentReference = cmp;                                                        
                                                     }
                                                 );
                                             });

@@ -12,6 +12,14 @@
                 // attributesを更新する
                 component.set("v.latitude", payload.latitude);
                 component.set("v.longitude", payload.longitude);
+
+                if (window.parent) {
+                    window.parent.postMessage({
+                        type: 'mapLocationChange',
+                        latitude: payload.latitude,
+                        longitude: payload.longitude
+                    }, window.location.origin);
+                }
             }
         }
     }
