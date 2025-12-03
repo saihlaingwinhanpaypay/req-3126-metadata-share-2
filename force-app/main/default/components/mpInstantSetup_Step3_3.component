@@ -29,6 +29,34 @@ $(function(){
         initialLat = null;
     }
 
+    // postMessageイベントリスナー - LWCから直接受信
+    window.addEventListener('message', function(event) {
+        // セキュリティチェック: 同じオリジンからのメッセージのみ処理
+        if (event.origin !== window.location.origin) {
+            return;
+        }
+        
+        // mapLocationChangeメッセージを処理
+        if (event.data && event.data.type === 'mapLocationChange') {
+            try {
+                var latitude = event.data.latitude;
+                var longitude = event.data.longitude;
+                
+                // 入力項目を更新する
+                var latInput = $("input[id$='ylatitude']");
+                var lngInput = $("input[id$='ylongitude']");
+                
+                if (latInput.length && lngInput.length) {
+                    latInput.val(latitude);
+                    lngInput.val(longitude);
+                    console.log("Updated inputs:", latitude, longitude);
+                }
+            } catch(e) {
+                console.error("Error updating inputs:", e);
+            }
+        }
+    });
+    
     // Initialize Leaflet Map component
     $Lightning.use("c:mpMapPickerApp", function() {
         $Lightning.createComponent("c:mpMapPickerWrapper",
@@ -40,32 +68,6 @@ $(function(){
             "leafletMapContainer",
             function(cmp) {
                 window.leafletMapComponent = cmp;
-                
-                // Poll for attribute changes and update input fields
-                var lastLat = null;
-                var lastLng = null;
-                
-                setInterval(function() {
-                    if (window.leafletMapComponent) {
-                        var currentLat = window.leafletMapComponent.get("v.latitude");
-                        var currentLng = window.leafletMapComponent.get("v.longitude");
-                        var lastUpdate = window.leafletMapComponent.get("v.lastUpdate");
-                        
-                        if (lastUpdate && (currentLat !== lastLat || currentLng !== lastLng)) {
-                            lastLat = currentLat;
-                            lastLng = currentLng;
-                            
-                            // 入力項目を更新する
-                            var latInput = $("input[id$='ylatitude']");
-                            var lngInput = $("input[id$='ylongitude']");
-                            
-                            if (latInput.length && lngInput.length) {
-                                latInput.val(currentLat);
-                                lngInput.val(currentLng);
-                            }
-                        }
-                    }
-                }, 100);
             }
         );
     });
