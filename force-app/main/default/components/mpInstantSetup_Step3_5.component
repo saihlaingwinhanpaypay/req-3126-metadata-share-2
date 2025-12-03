@@ -75,7 +75,6 @@ $(function(){
     var lat = "{! mpOpportunity__c.OgglatitudeInput__c}";
     var lng = "{! mpOpportunity__c.OgglongitudeInput__c}";
     
-    // Convert to numbers, handling null/empty values
     var latValue = lat && lat !== '' ? parseFloat(lat) : null;
     var lngValue = lng && lng !== '' ? parseFloat(lng) : null;
     

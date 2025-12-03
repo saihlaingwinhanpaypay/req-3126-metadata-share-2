@@ -30,7 +30,7 @@ export default class MpMapPicker extends LightningElement {
     mapInitialized = false;
     leafletInitialized = false;
     useCurrentLocation = false;
-    lastSearchTime = 0; // Track last search time for rate limiting
+    lastSearchTime = 0; // レットリミットのための最終検索時間を追跡
 
     get isSearchDisabled() {
         return !this.searchQuery.trim() || this.isSearching;
@@ -55,10 +55,9 @@ export default class MpMapPicker extends LightningElement {
         ])
         .then(() => {
             this.leafletInitialized = true;
-            // Check if latitude and longitude are null or undefined
             if (!this.latitude || !this.longitude || 
                 this.latitude === 0 || this.longitude === 0) {
-                // Use current location
+                // ユーザの現在地を利用
                 this.useCurrentLocation = true;
                 this.getCurrentLocation();
             } else {
@@ -74,14 +73,14 @@ export default class MpMapPicker extends LightningElement {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    // Successfully got current location
+                    // ユーザの現在地取得ができる
                     this.latitude = position.coords.latitude;
                     this.longitude = position.coords.longitude;
                     this.initializeMap();
                 },
                 (error) => {
                     console.error('Error getting current location:', error);
-                    // Fall back to Tokyo Station if geolocation fails
+                    // エラーの場合は東京駅をデフォルトにする
                     this.latitude = 35.680840;
                     this.longitude = 139.767009;
                     this.initializeMap();
@@ -89,7 +88,7 @@ export default class MpMapPicker extends LightningElement {
                 { timeout: 5000, enableHighAccuracy: true }
             );
         } else {
-            // Geolocation not supported, use Tokyo Station as fallback
+            // 東京駅fallback
             this.latitude = 35.680840;
             this.longitude = 139.767009;
             this.initializeMap();
@@ -99,7 +98,6 @@ export default class MpMapPicker extends LightningElement {
     initializeMap() {
         const container = this.template.querySelector('.map-container');
         
-        // Create map div
         const mapDiv = document.createElement('div');
         mapDiv.id = 'map-vf';
         mapDiv.style.height = '480px';
@@ -107,7 +105,7 @@ export default class MpMapPicker extends LightningElement {
         mapDiv.style.maxWidth = '700px';
         container.appendChild(mapDiv);
 
-        // Configure Leaflet to use static resource icons
+        // 静的リソースのアイコンを利用する
         delete L.Icon.Default.prototype._getIconUrl;
         L.Icon.Default.mergeOptions({
             iconRetinaUrl: LEAFLET_FILES + '/leafletjs/marker-icon-2x.png',
@@ -115,7 +113,6 @@ export default class MpMapPicker extends LightningElement {
             shadowUrl: LEAFLET_FILES + '/leafletjs/marker-shadow.png'
         });
 
-        // Initialize Leaflet map with optimized zoom levels (OSM recommendation)
         const maxZoom = 19;
         const minZoom = 5;
         const initialZoom = this.useCurrentLocation ? 16 : 18;
@@ -125,24 +122,23 @@ export default class MpMapPicker extends LightningElement {
             zoom: initialZoom,
             maxZoom: maxZoom,
             minZoom: minZoom,
-            // Reduce unnecessary tile reloads
             zoomSnap: 1,
             zoomDelta: 1,
             wheelPxPerZoomLevel: 120
         });
 
-        // tile layer with optimization settings
+        // ライセンス
         // Leaflet: Copyright (c) 2010-2023, Vladimir Agafonkin, CloudMade (BSD-2-Clause License)
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '<a href="https://leafletjs.com" title="A JavaScript library for interactive maps">Leaflet</a> | &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             maxZoom: maxZoom,
             minZoom: minZoom,
-            // Tile caching and loading optimization
+            // タイルのパフォーマンス最適化
             maxNativeZoom: 19,
-            keepBuffer: 2,              // Keep 2 rows/cols of tiles loaded around viewport
-            updateWhenIdle: true,       // Update tiles only when map stops moving
-            updateWhenZooming: false,   // Don't update tiles during zoom animation
-            // Proper referrer policy for privacy
+            keepBuffer: 2,
+            updateWhenIdle: true,
+            updateWhenZooming: false,
+            // referrer policy for privacy
             referrerPolicy: 'no-referrer-when-downgrade',
             // Subdomains for load distribution across OSM servers
             subdomains: ['a', 'b', 'c'],
@@ -150,35 +146,29 @@ export default class MpMapPicker extends LightningElement {
             crossOrigin: true
         }).addTo(this.map);
 
-        // Add marker and show it at default coordinates immediately
+        // デフォルト位置でマーカーを追加
         this.marker = L.marker([this.latitude, this.longitude], {
             draggable: !this.readonly
         }).addTo(this.map);
 
-        // Handle map clicks
         if (!this.readonly) {
             this.map.on('click', (e) => {
                 const lat = e.latlng.lat;
                 const lng = e.latlng.lng;
                 this.updateLocation(lat, lng);
-                
-                // Add marker to map if not already added
+
                 if (!this.map.hasLayer(this.marker)) {
                     this.marker.addTo(this.map);
                 }
             });
         }
 
-        // Handle marker drag
         if (!this.readonly) {
             this.marker.on('dragend', (e) => {
                 const position = this.marker.getLatLng();
                 this.updateLocation(position.lat, position.lng);
             });
         }
-
-        // Dispatch event to notify Visualforce page that map is ready
-        this.dispatchEvent(new CustomEvent('mapready'));
     }
 
     updateLocation(lat, lng) {
@@ -186,7 +176,7 @@ export default class MpMapPicker extends LightningElement {
         this.longitude = parseFloat(lng.toFixed(10));
         this.marker.setLatLng([lat, lng]);
         
-        // Dispatch event with new coordinates (bubbles and composed to cross shadow DOM)
+        // 新規位置でイベントを発行する
         this.dispatchEvent(new CustomEvent('locationchange', {
             detail: {
                 latitude: this.latitude,
@@ -203,7 +193,6 @@ export default class MpMapPicker extends LightningElement {
         this.longitude = lng;
         this.updateMapView();
         
-        // Add marker if not already on map
         if (this.map && !this.map.hasLayer(this.marker)) {
             this.marker.addTo(this.map);
         }
@@ -220,7 +209,7 @@ export default class MpMapPicker extends LightningElement {
     updateMapView() {
         if (this.map && this.marker) {
             this.marker.setLatLng([this.latitude, this.longitude]);
-            // Keep the map at its max zoom when programmatically updating location
+
             const zoom = this.map.getMaxZoom ? this.map.getMaxZoom() : undefined;
             if (typeof zoom === 'number') {
                 this.map.setView([this.latitude, this.longitude], zoom);
@@ -242,6 +231,7 @@ export default class MpMapPicker extends LightningElement {
         }
 
         // Rate limiting: Enforce 1 request per second minimum
+        // レットリミット：1秒に1回のリクエストを強制
         const now = Date.now();
         const timeSinceLastSearch = now - this.lastSearchTime;
         if (timeSinceLastSearch < 1000) {
@@ -255,12 +245,11 @@ export default class MpMapPicker extends LightningElement {
 
         try {
             // Nominatim Usage Policy: https://operations.osmfoundation.org/policies/nominatim/
-            // - Limited to 1 request per second
+            // - Limited to 1 request per second　1秒に1回のリクエストを強制
             const response = await fetch(
                 `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(this.searchQuery)}&limit=1&countrycodes=jp`,
                 {
                     headers: {
-                        // Required: Identify your application
                         'User-Agent': 'mpMapPicker/1.0'
                     }
                 }

@@ -4,15 +4,15 @@
     },
     
     handleLocationChange : function(component, event, helper) {
-        // Get the location data from the LWC event
+        // LWC eventから位置情報を取得
         var detail = event.getParam('detail') || event.detail || event.sq;
         
         if (detail && detail.latitude !== undefined && detail.longitude !== undefined) {
-            // Update component attributes
+            // attributesを更新する
             component.set("v.latitude", detail.latitude);
             component.set("v.longitude", detail.longitude);
             
-            // Notify Visualforce page
+            // Visualforce ページに通知する
             component.set("v.lastUpdate", new Date().getTime());
         }
     }

@@ -3,10 +3,9 @@
     <aura:attribute name="longitude" type="Decimal"/>
     <aura:attribute name="readonly" type="Boolean" default="false"/>
     <aura:attribute name="lastUpdate" type="Long" default="0"/>
-    <aura:registerEvent name="locationUpdate" type="c:mpLocationUpdateEvent"/>
     <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
     
-    <!-- LWC Component with latitude and longitude passed from Visualforce -->
+    <!-- LWC -->
     <c:mpMapPicker aura:id="mapPicker" 
                    latitude="{!v.latitude}" 
                    longitude="{!v.longitude}"

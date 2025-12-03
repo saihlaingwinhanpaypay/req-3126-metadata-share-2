@@ -10,25 +10,21 @@ $(function(){
     var storedLng = "{!mpOpportunity__c.OgglongitudeInput__c}";
     var storedLat = "{!mpOpportunity__c.OgglatitudeInput__c}";
 
-    // Determine initial coordinates
     var initialLng, initialLat;
     
-    // If stored coordinates exist and match default, use them
     if (storedLng && storedLat && storedLng !== '' && storedLat !== '' && 
         lng === storedLng && lat === storedLat) {
         initialLng = parseFloat(storedLng);
         initialLat = parseFloat(storedLat);
     } else if (lng !== "0" && lat !== "0") {
-        // Use default coordinates if not 0,0
         initialLng = parseFloat(lng);
         initialLat = parseFloat(lat);
-        // Clear stored values if they don't match
+
         if (lng !== storedLng || lat !== storedLat) {
             $("input[id$='ylatitude']").val('');
             $("input[id$='ylongitude']").val('');
         }
     } else {
-        // Use null to trigger geolocation in component
         initialLng = null;
         initialLat = null;
     }
@@ -43,7 +39,6 @@ $(function(){
             },
             "leafletMapContainer",
             function(cmp) {
-                // Store component reference
                 window.leafletMapComponent = cmp;
                 
                 // Poll for attribute changes and update input fields
@@ -60,17 +55,13 @@ $(function(){
                             lastLat = currentLat;
                             lastLng = currentLng;
                             
-                            // Update input fields
+                            // 入力項目を更新する
                             var latInput = $("input[id$='ylatitude']");
                             var lngInput = $("input[id$='ylongitude']");
                             
                             if (latInput.length && lngInput.length) {
                                 latInput.val(currentLat);
                                 lngInput.val(currentLng);
-                                
-                                // Trigger change event
-                                latInput.trigger('change');
-                                lngInput.trigger('change');
                             }
                         }
                     }

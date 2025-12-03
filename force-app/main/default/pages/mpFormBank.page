@@ -394,7 +394,7 @@
                 display:none;
             }
 
-            #map input[type=text].mapboxgl-ctrl-geocoder--input{
+            #map input[type=text] {
                 padding:6px 35px;
                 min-width:0px;
                 border:none;
@@ -631,34 +631,27 @@
                                         </p>
                                         
                                         <script>
-                                            // Store component reference globally
                                             var mapComponentReference = null;
                                             var lastKnownUpdate = 0;
                                             
-                                            // Function to update input fields from component attributes
+                                            // auraのattributesで緯度経度項目に反映するfunction
                                             function updateInputFieldsFromComponent() {
                                                 if (!mapComponentReference) return;
                                                 
                                                 try {
                                                     var currentUpdate = mapComponentReference.get("v.lastUpdate");
                                                     
-                                                    // Only update if coordinates have changed
                                                     if (currentUpdate && currentUpdate !== lastKnownUpdate) {
                                                         var latitude = mapComponentReference.get("v.latitude");
                                                         var longitude = mapComponentReference.get("v.longitude");
                                                         
-                                                        // Update input fields
+                                                        // 入力項目を更新
                                                         var latInput = document.querySelector('input[id*="ylatitude"]');
                                                         var lngInput = document.querySelector('input[id*="ylongitude"]');
                                                         
                                                         if (latInput && lngInput) {
                                                             latInput.value = latitude;
                                                             lngInput.value = longitude;
-                                                            
-                                                            // Trigger change event for validation
-                                                            var changeEvent = new Event('change', { bubbles: true });
-                                                            latInput.dispatchEvent(changeEvent);
-                                                            lngInput.dispatchEvent(changeEvent);
                                                         }
                                                         
                                                         lastKnownUpdate = currentUpdate;
@@ -670,11 +663,9 @@
                                             
                                             // Initialize Leaflet Map component
                                             $Lightning.use("c:mpMapPickerApp", function() {
-                                                // Get latitude and longitude from Salesforce fields
                                                 var initialLat = "{!mpOpportunity__c.OgglatitudeInput__c}";
                                                 var initialLng = "{!mpOpportunity__c.OgglongitudeInput__c}";
                                                 
-                                                // Convert to numbers, handling null/empty values
                                                 var latValue = initialLat && initialLat !== '' ? parseFloat(initialLat) : null;
                                                 var lngValue = initialLng && initialLng !== '' ? parseFloat(initialLng) : null;
                                                 
@@ -685,7 +676,6 @@
                                                     },
                                                     "leafletMapContainer",
                                                     function(cmp) {
-                                                        // Store component reference
                                                         mapComponentReference = cmp;
                                                         
                                                         // Poll for attribute changes every 500ms
