@@ -12,7 +12,7 @@
  *   https://www.openstreetmap.org/copyright
  * 
  */
-import { LightningElement, track, api, wire } from 'lwc';
+import { LightningElement, api, wire } from 'lwc';
 import { loadStyle, loadScript } from 'lightning/platformResourceLoader';
 import { publish, MessageContext } from 'lightning/messageService';
 import MAP_LOCATION_CHANNEL from '@salesforce/messageChannel/MapLocationChange__c';
@@ -23,9 +23,9 @@ export default class MpMapPicker extends LightningElement {
     @api longitude;
     @api readonly = false;
     
-    @track searchQuery = '';
-    @track searchError = '';
-    @track isSearching = false;
+    searchQuery = '';
+    searchError = '';
+    isSearching = false;
     
     map;
     marker;
