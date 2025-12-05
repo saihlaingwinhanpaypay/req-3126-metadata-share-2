@@ -1,12 +1,11 @@
 /* .map-wrapper {
-    padding: 1.5rem;
+    padding: 1rem;
 } */
 
 .map-instruction {
     margin-bottom: 1rem;
     color: #514f4d;
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: 14px !important;
 }
 
 .search-container {
@@ -18,14 +17,7 @@
 
 .search-container lightning-input {
     flex: 1;
-    font-size: 14px;
-}
-
-/* Ensure lightning-input maintains proper size */
-.search-container lightning-input::part(input) {
     font-size: 14px !important;
-    padding: 0.5rem !important;
-    min-height: 2.5rem !important;
 }
 
 .search-button {
@@ -33,17 +25,9 @@
     font-size: 14px !important;
 }
 
-/* Ensure lightning-button maintains proper size */
-.search-button::part(button) {
-    font-size: 14px !important;
-    padding: 0.5rem 1rem !important;
-    min-height: 2.5rem !important;
-}
-
 .map-container {
-    margin: 1rem 0;
+    margin: 1rem 0 !important;
     border: 1px solid #d8dde6;
-    font-size: 14px;
 }
 
 .coordinates-display {
@@ -61,5 +45,4 @@
 .coordinate-label {
     color: #514f4d;
     font-weight: bold;
-    font-size: 14px;
 }

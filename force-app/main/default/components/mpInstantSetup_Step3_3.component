@@ -49,7 +49,6 @@ $(function(){
                 if (latInput.length && lngInput.length) {
                     latInput.val(latitude);
                     lngInput.val(longitude);
-                    console.log("Updated inputs:", latitude, longitude);
                 }
             } catch(e) {
                 console.error("Error updating inputs:", e);
@@ -134,7 +133,9 @@ window.validation = (function() {
                             <div class="col-xs-12">
                                 <div class="form-group">
                                     <label>地図掲載位置</label>
-                                    <div id="leafletMapContainer" style="width:100%; max-width:100%; padding: 2rem;"></div>
+                                </div>
+                                <div id="leafletMapContainer" style="width:100%; height:100%"></div>
+                                <div class="form-group>">
                                     <p>
                                         緯度<span style="margin-left: 1em;"></span><apex:InputText value="{! mpOpportunity__c.OgglatitudeInput__c}" html-placeholder="" id="ylatitude" html-readonly="true"/>
                                     </p>

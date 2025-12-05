@@ -107,7 +107,7 @@ export default class MpMapPicker extends LightningElement {
         mapDiv.id = 'map-vf';
         mapDiv.style.height = '480px';
         mapDiv.style.width = '100%';
-        mapDiv.style.maxWidth = '700px';
+        // mapDiv.style.maxWidth = '700px';
         container.appendChild(mapDiv);
 
         // 静的リソースのアイコンを利用する
