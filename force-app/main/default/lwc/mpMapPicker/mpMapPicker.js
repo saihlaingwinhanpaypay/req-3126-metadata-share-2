@@ -86,16 +86,16 @@ export default class MpMapPicker extends LightningElement {
                 (error) => {
                     console.error('Error getting current location:', error);
                     // エラーの場合は東京駅をデフォルトにする
-                    this.latitude = 35.680840;
-                    this.longitude = 139.767009;
+                    this.latitude = 35.68084000000000;
+                    this.longitude = 139.76700900000000;
                     this.initializeMap();
                 },
                 { timeout: 5000, enableHighAccuracy: true }
             );
         } else {
             // 東京駅fallback
-            this.latitude = 35.680840;
-            this.longitude = 139.767009;
+            this.latitude = 35.68084000000000;
+            this.longitude = 139.76700900000000;
             this.initializeMap();
         }
     }
@@ -177,8 +177,8 @@ export default class MpMapPicker extends LightningElement {
     }
 
     updateLocation(lat, lng) {
-        this.latitude = parseFloat(lat.toFixed(10));
-        this.longitude = parseFloat(lng.toFixed(10));
+        this.latitude = parseFloat(lat.toFixed(14));
+        this.longitude = parseFloat(lng.toFixed(14));
         this.marker.setLatLng([lat, lng]);
         
         // Lightning Message Serviceで位置情報を発行する
@@ -265,8 +265,8 @@ export default class MpMapPicker extends LightningElement {
 
             if (data && data.length > 0) {
                 const location = data[0];
-                const lat = parseFloat(location.lat);
-                const lon = parseFloat(location.lon);
+                const lat = parseFloat(parseFloat(location.lat).toFixed(14));
+                const lon = parseFloat(parseFloat(location.lon).toFixed(14));
                 
                 this.updateLocation(lat, lon);
                 const zoom = this.map.getMaxZoom ? this.map.getMaxZoom() : 19;
