@@ -3,8 +3,12 @@
 <apex:attribute name="mpInstantSetup" description="mpInstantSetup" type="mpInstantSetup" required="true"/>
 
 <apex:outputText rendered="{!mpInstantSetup.ShowMap}">
-<!-- Lightning Out for Leaflet Map Component -->
-<apex:includeLightning />
+<script src='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.js'></script>
+<link href='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.css' rel='stylesheet' />
+<script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-language/v0.10.1/mapbox-gl-language.js'></script>
+<!-- Promise polyfill script required to use Mapbox GL Geocoder in IE 11 -->
+<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js"></script>
 </apex:outputText>
 <style>
 .confirm-data {display:block;}
@@ -74,24 +78,23 @@
 $(function(){
     var lat = "{! mpOpportunity__c.OgglatitudeInput__c}";
     var lng = "{! mpOpportunity__c.OgglongitudeInput__c}";
-    
-    var latValue = lat && lat !== '' ? parseFloat(lat) : null;
-    var lngValue = lng && lng !== '' ? parseFloat(lng) : null;
-    
-    // Initialize Leaflet Map component in readonly mode
-    $Lightning.use("c:mpMapPickerApp", function() {
-        $Lightning.createComponent("c:mpMapPickerWrapper",
-            {
-                "latitude": latValue,
-                "longitude": lngValue,
-                "readonly": true
-            },
-            "leafletMapContainer",
-            function(cmp) {
-                console.log("Map component loaded in readonly mode");
-            }
-        );
+    var zoom = 19;
+
+    mapboxgl.accessToken = 'pk.eyJ1IjoicGF5cGF5IiwiYSI6ImNrN2N6M2IyczFqenozZm51ZnpkYTdkeDMifQ.4_5A29W-U_Pm8WuBoDGaqw';
+    var map = new mapboxgl.Map({
+    container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v10',
+        center: [lng, lat],
+        zoom: zoom
     });
+    map.addControl(new MapboxLanguage({
+        defaultLanguage: 'ja'
+    }));
+    var nav = new mapboxgl.NavigationControl();
+    map.addControl(nav, 'top-left');
+    var marker = new mapboxgl.Marker()
+        .setLngLat([lng, lat])
+        .addTo(map);
 });
 </script>
 </apex:outputPanel>
@@ -271,9 +274,10 @@ $(function(){
                             <apex:outputPanel rendered="{! mpOpportunity__c.MapDisplayTime__c == 'キット到着後、約１週間後に掲載'}"><div>約1週間以内に掲載</div></apex:outputPanel>
                             <apex:outputPanel rendered="{! mpOpportunity__c.MapDisplayTime__c == '審査可決後、約1ヵ月後に掲載'}"><div>約1ヵ月後に掲載</div></apex:outputPanel>
                             <apex:outputPanel rendered="{! mpOpportunity__c.MapDisplayTime__c == '審査可決後、約3ヵ月後に掲載'}"><div>約3ヵ月後に掲載</div></apex:outputPanel>
+                            <apex:outputPanel rendered="{! mpOpportunity__c.MapDisplayTime__c == '掲載しない'}"><div>掲載しない</div></apex:outputPanel>
                         </div>
                     </div>
-                    <div id="leafletMapContainer" style="width:100%; max-width:100%;"></div>
+                    <div id="map" style="width:100%; height:480px; max-width:100%;"></div>
                 </div>
             </div>
             <!--  /panel-body -->

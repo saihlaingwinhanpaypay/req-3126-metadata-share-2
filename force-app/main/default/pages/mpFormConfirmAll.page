@@ -23,10 +23,10 @@
         />
         <apex:stylesheet value="{!URLFOR($Resource.wakamatsu_css, 'wakamatsu_css/emg-60a37f2cf1dad087ee8e85cea8de6670.css')}" />
         
-        <!-- Lightning Out for Leaflet Map Component -->
-        <apex:includeLightning />
-        
         <script src="{!URLFOR($Resource.jQuery_3_7_1)}"></script>
+        <script src='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.js'></script>
+        <link href='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.css' rel='stylesheet' />
+        <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-language/v0.10.1/mapbox-gl-language.js'></script>
         <style type="text/css">
             #masthead h1 a {
                 background-image: url(https://s.yimg.jp/c/logo/f/2.0/wallet_r_34.png);
@@ -59,28 +59,26 @@
             a:active { color: #0000ff; }
         </style>
         <script>
-            // Initialize Leaflet Map component
             $(function(){
                 var lat = "{! mpOpportunity__c.OgglatitudeInput__c}";
                 var lng = "{! mpOpportunity__c.OgglongitudeInput__c}";
-                
-                // Convert to numbers, handling null/empty values
-                var latValue = lat && lat !== '' ? parseFloat(lat) : null;
-                var lngValue = lng && lng !== '' ? parseFloat(lng) : null;
-                
-                $Lightning.use("c:mpMapPickerApp", function() {
-                    $Lightning.createComponent("c:mpMapPickerWrapper",
-                        {
-                            "latitude": latValue,
-                            "longitude": lngValue,
-                            "readonly": true
-                        },
-                        "mapContainer",
-                        function(cmp) {
-                            console.log("Map component loaded in readonly mode");
-                        }
-                    );
+                var zoom = 19;
+
+                mapboxgl.accessToken = 'pk.eyJ1IjoicGF5cGF5IiwiYSI6ImNrN2N6M2IyczFqenozZm51ZnpkYTdkeDMifQ.4_5A29W-U_Pm8WuBoDGaqw';
+                var map = new mapboxgl.Map({
+                container: 'map',
+                    style: 'mapbox://styles/mapbox/streets-v10',
+                    center: [lng, lat],
+                    zoom: zoom
                 });
+                map.addControl(new MapboxLanguage({
+                    defaultLanguage: 'ja'
+                }));
+                var nav = new mapboxgl.NavigationControl();
+                map.addControl(nav, 'top-left');
+                var marker = new mapboxgl.Marker()
+                    .setLngLat([lng, lat])
+                    .addTo(map);
             });
             // 表示内容を画面表示時に制御
             $(function(){
@@ -2000,7 +1998,7 @@
                                     </div>
                                     <div class="pfInput">
                                         <p>
-                                            <div id="mapContainer" style="width:700px; max-width:100%;"></div>
+                                            <div id="map" style="width:700px; height:480px; max-width:100%;"></div>
                                         </p>
                                         <p>
                                             緯度<span style="margin-left: 1em;"></span><apex:outputField value="{! mpOpportunity__c.OgglatitudeInput__c}"/>
@@ -2010,7 +2008,25 @@
                                         </p>
                                     </div>
                                 </div>
-                                </apex:outputPanel>    
+                                </apex:outputPanel>  
+                                <div class="pfHeadline"><span style="font-size:20px;">PayPayQRコードキット配送先</span></div>
+                                <div class="pfFormObject">
+                                    <div class="pfLabel">
+                                        <p>
+                                            <label for="">配送先場所</label>   
+                                        </p>
+                                    </div>
+                                    <div class="pfInput">
+                                        <p style="padding-top:5px;">
+                                            <apex:outputPanel rendered="{! mpOpportunity__c.DeliveryDestination__c == 'QR店舗住所' }">
+                                                加盟店（店舗）住所
+                                            </apex:outputPanel>
+                                            <apex:outputPanel rendered="{! mpOpportunity__c.DeliveryDestination__c == 'QR法人/個人事業主住所' }">
+                                                法人、個人事業主住所
+                                            </apex:outputPanel>
+                                        </p>
+                                    </div>
+                                </div>
                                 <div class="pfHeadline"><span style="font-size:20px;">金融機関</span></div>                                
                                 <div class="pfFormObject">
                                     <div class="pfLabel">

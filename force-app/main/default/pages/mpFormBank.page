@@ -27,10 +27,14 @@
 <script src="https://forms.business.yahoo.co.jp//js/webform/css3-mediaqueries.js"></script>
 <![endif]-->
         <script src="{!URLFOR($Resource.jQuery_3_7_1)}"></script>
-        
-        <!-- Lightning Out for Aura/LWC components -->
-        <apex:includeLightning />
-        
+        <script src='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.js'></script>
+        <link href='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.css' rel='stylesheet' />
+        <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.5.1/mapbox-gl-geocoder.min.js"></script>
+        <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.5.1/mapbox-gl-geocoder.css" type="text/css"/>
+        <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-language/v0.10.1/mapbox-gl-language.js'></script>
+        <!-- Promise polyfill script required to use Mapbox GL Geocoder in IE 11 -->
+        <script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js"></script>
         <script type="text/javascript">
             window.BankSearchFunction = function(){
                 window.seachPanel = function(){
@@ -239,6 +243,110 @@
             else if(window.attachEvent) window.attachEvent("onload", _init);
         </script>
         <script type="text/javascript">
+            $(function(){
+                var lng = "{! mpLngLatDefault[0]}";
+                var lat = "{! mpLngLatDefault[1]}";
+                var zoom = 17;
+
+                var showMap = function() {
+                    mapboxgl.accessToken = 'pk.eyJ1IjoicGF5cGF5IiwiYSI6ImNrN2N6M2IyczFqenozZm51ZnpkYTdkeDMifQ.4_5A29W-U_Pm8WuBoDGaqw';
+                    var map = new mapboxgl.Map({
+                    container: 'map',
+                        style: 'mapbox://styles/mapbox/streets-v10',
+                        center: [lng, lat],
+                        zoom: zoom
+                    });
+                    map.addControl(new MapboxGeocoder({
+                        accessToken: mapboxgl.accessToken,
+                        mapboxgl: mapboxgl,
+                        collapsed: true
+                    }));
+                    map.addControl(new MapboxLanguage({
+                        defaultLanguage: 'ja'
+                    }));
+                    var nav = new mapboxgl.NavigationControl();
+                    map.addControl(nav, 'top-left');
+                    var marker = null;
+    
+                    if (lng != "{!mpOpportunity__c.OgglongitudeInput__c}" || lat != "{!mpOpportunity__c.OgglatitudeInput__c}") {
+                        $("input[id$='ylatitude']").val('');
+                        $("input[id$='ylongitude']").val('');
+                    } else {
+                        marker = new mapboxgl.Marker()
+                            .setLngLat([lng, lat])
+                            .addTo(map);
+                    }
+                
+                    map.on('click', function(e) {
+                        console.log('A click event has occurred at ' + e.lngLat);
+                        //マーカーを削除
+                        if(marker != null) {
+                            marker.remove();
+                        }
+                        //マーカーを追加
+                        marker = new mapboxgl.Marker()
+                            .setLngLat(e.lngLat)
+                            .addTo(map);
+                        // フォームに緯度・経度を設定
+                        $("input[id$='ylongitude']").val(e.lngLat.lng);
+                        $("input[id$='ylatitude']").val(e.lngLat.lat);
+                    });
+                };
+                
+                if (lng == "0" && lat == "0") {
+                    if (navigator.geolocation) {
+                        //Geolocation APIに対応している場合、現在地を取得して緯度経度が設定された地図を表示
+                        // 現在地を取得
+                        navigator.geolocation.getCurrentPosition(
+                            //取得成功した場合
+                            function(position) {
+                                //現在地を設定して地図を表示
+                                lng = position.coords.longitude;
+                                lat = position.coords.latitude;
+                                showMap();
+                            },
+                            //取得失敗した場合
+                            function(error) {
+                                console.log(error);
+                                // 東京駅
+                                lng = 139.767009;
+                                lat = 35.680840;
+                                zoom = 13;
+                                showMap();
+                            },
+                            { timeout: 3500 } // 3秒でタイムアウトさせる
+                        );
+                    } else {
+                        // 東京駅
+                        lng = 139.767009;
+                        lat = 35.680840;
+                        zoom = 13;
+                        showMap();
+                    }
+                } else {
+                    showMap();
+                }
+
+                // ページ読み込み時に初期状態を設定
+                updateMapMessages();
+                // セレクトボックス変更時にメッセージを更新
+                $("select[id$='addmap']").on("change", updateMapMessages);
+            });
+            // ▼ 「地図掲載開始予定日」選択によってメッセージを切り替える処理
+            function updateMapMessages() {
+                var val = $("select[id$='addmap']").val();
+                if (val === "掲載しない") {
+                    // 「掲載しない」を選択した場合、警告メッセージを表示
+                    $("#msgNormal").hide();
+                    $("#msgError").show();
+                } else {
+                    // それ以外の場合、通常メッセージを表示
+                    $("#msgError").hide();
+                    $("#msgNormal").show();
+                }
+            }
+        </script>
+        <script type="text/javascript">
         $(function(){
             var $accountText = $('.account-text');
 
@@ -394,7 +502,7 @@
                 display:none;
             }
 
-            #map input[type=text] {
+            #map input[type=text].mapboxgl-ctrl-geocoder--input{
                 padding:6px 35px;
                 min-width:0px;
                 border:none;
@@ -601,6 +709,7 @@
                                                 <apex:selectOption itemValue="キット到着後、約１週間後に掲載" itemLabel="キット到着後、約１週間後に掲載"/>
                                                 <apex:selectOption itemValue="審査可決後、約1ヵ月後に掲載" itemLabel="審査可決後、約1ヵ月後に掲載"/>
                                                 <apex:selectOption itemValue="審査可決後、約3ヵ月後に掲載" itemLabel="審査可決後、約3ヵ月後に掲載"/>
+                                                <apex:selectOption itemValue="掲載しない" itemLabel="掲載しない"/>
                                             </apex:selectList> 
                                         </apex:outputLabel>
                                         </p>
@@ -617,69 +726,49 @@
                                         </p>
                                     </div>
                                     <div class="pfInput">
-                                        <div id="leafletMapContainer"></div>
-                                        <div id="errorMap" class="errorMsg" style="display: none;">
-                                            <strong>エラー:</strong>
-                                            &nbsp;地図にピンを立ててください
-                                        </div>
-                                        
+                                        <p>
+                                            <div id="msgNormal" style="display:none;">地図をタップして店舗の位置にピンを立ててください。</div>
+                                            <div id="msgError" style="display:none;margin: 0;">
+                                                加盟店管理情報として緯度経度情報が必要なため地図をタップして店舗の位置にピンを立ててください<br />
+                                                ※「地図掲載しない」を選択した場合でも緯度経度情報が必要となります
+                                            </div>
+                                            <div id="map" style="width:700px; height:480px; max-width:100%;"></div>
+                                            <div id="errorMap" class="errorMsg" style="display: none;">
+                                                <strong>エラー:</strong>
+                                                &nbsp;地図にピンを立ててください
+                                            </div>
+                                        </p>
                                         <p>
                                             緯度<span style="margin-left: 1em;"></span><apex:InputText value="{! mpOpportunity__c.OgglatitudeInput__c}" html-placeholder="" id="ylatitude" html-readonly="true"/>
                                         </p>
                                         <p>
                                             経度<span style="margin-left: 1em;"></span><apex:InputText value="{! mpOpportunity__c.OgglongitudeInput__c}" html-placeholder="" id="ylongitude" html-readonly="true"/>
                                         </p>
-                                        
-                                        <script>
-                                            var mapComponentReference = null;
-                                            
-                                            // 入力項目を更新する共通関数
-                                            function updateInputFields(latitude, longitude) {
-                                                try {
-                                                    var latInput = document.querySelector('input[id*="ylatitude"]');
-                                                    var lngInput = document.querySelector('input[id*="ylongitude"]');
-                                                    
-                                                    if (latInput && lngInput) {
-                                                        latInput.value = latitude;
-                                                        lngInput.value = longitude;
-                                                    }
-                                                } catch(e) {
-                                                    console.error("Error updating inputs:", e);
-                                                }
-                                            }
-                                            
-                                            // postMessageイベントリスナー
-                                            window.addEventListener('message', function(event) {
-                                                if (event.origin !== window.location.origin) {
-                                                    return;
-                                                }
-                                                
-                                                // mapLocationChangeメッセージを処理
-                                                if (event.data && event.data.type === 'mapLocationChange') {
-                                                    updateInputFields(event.data.latitude, event.data.longitude);
-                                                }
-                                            });
-                                            
-                                            // Initialize Leaflet Map component
-                                            $Lightning.use("c:mpMapPickerApp", function() {
-                                                var initialLat = "{!mpOpportunity__c.OgglatitudeInput__c}";
-                                                var initialLng = "{!mpOpportunity__c.OgglongitudeInput__c}";
-                                                
-                                                var latValue = initialLat && initialLat !== '' ? parseFloat(initialLat) : null;
-                                                var lngValue = initialLng && initialLng !== '' ? parseFloat(initialLng) : null;
-                                                
-                                                $Lightning.createComponent("c:mpMapPickerWrapper",
-                                                    {
-                                                        "latitude": latValue,
-                                                        "longitude": lngValue
-                                                    },
-                                                    "leafletMapContainer",
-                                                    function(cmp) {
-                                                        mapComponentReference = cmp;                                                        
-                                                    }
-                                                );
-                                            });
-                                        </script>
+                                    </div>
+                                </div>
+                            </apex:outputPanel>
+
+                            <apex:outputPanel rendered="{!IF(AND(mpOpportunity__c.FormStoreSales__c != '屋台・機内・社内・移動販売', mpOpportunity__c.MerchandiseClassification__c != '交通') ,true,false)}">
+                            
+                                <div class="pfHeadline">
+                                    <span style="font-size:20px;">PayPayQRコードキット配送先</span>
+                                </div>
+                                <div class="pfFormObject">
+                                    <div class="pfLabel">
+                                        <p>
+                                            <label for="">配送先住所</label>
+                                            <em class="required" title="必須">*</em>
+                                        </p>
+                                    </div>
+                                    <div class="pfInput">
+                                        <p>
+                                        <apex:outputLabel >
+                                            <apex:selectList id="deliDes" value="{! mpOpportunity__c.DeliveryDestination__c}" size="1" required="True">
+                                                <apex:selectOption itemValue="QR店舗住所" itemLabel="加盟店（店舗）住所"/>
+                                                <apex:selectOption itemValue="QR法人/個人事業主住所" itemLabel="法人、個人事業主住所"/>
+                                            </apex:selectList> 
+                                        </apex:outputLabel>
+                                        </p>
                                     </div>
                                 </div>
                             </apex:outputPanel>
