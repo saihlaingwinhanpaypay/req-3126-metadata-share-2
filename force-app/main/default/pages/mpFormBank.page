@@ -26,15 +26,10 @@
 <script src="https://forms.business.yahoo.co.jp//js/webform/html5.js"></script>
 <script src="https://forms.business.yahoo.co.jp//js/webform/css3-mediaqueries.js"></script>
 <![endif]-->
+        <!-- Lightning Out for Leaflet Map Component -->
+        <apex:includeLightning />
+        
         <script src="{!URLFOR($Resource.jQuery_3_7_1)}"></script>
-        <script src='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.js'></script>
-        <link href='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.css' rel='stylesheet' />
-        <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.5.1/mapbox-gl-geocoder.min.js"></script>
-        <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.5.1/mapbox-gl-geocoder.css" type="text/css"/>
-        <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-language/v0.10.1/mapbox-gl-language.js'></script>
-        <!-- Promise polyfill script required to use Mapbox GL Geocoder in IE 11 -->
-        <script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js"></script>
         <script type="text/javascript">
             window.BankSearchFunction = function(){
                 window.seachPanel = function(){
@@ -246,87 +241,67 @@
             $(function(){
                 var lng = "{! mpLngLatDefault[0]}";
                 var lat = "{! mpLngLatDefault[1]}";
-                var zoom = 17;
+                var storedLng = "{!mpOpportunity__c.OgglongitudeInput__c}";
+                var storedLat = "{!mpOpportunity__c.OgglatitudeInput__c}";
 
-                var showMap = function() {
-                    mapboxgl.accessToken = 'pk.eyJ1IjoicGF5cGF5IiwiYSI6ImNrN2N6M2IyczFqenozZm51ZnpkYTdkeDMifQ.4_5A29W-U_Pm8WuBoDGaqw';
-                    var map = new mapboxgl.Map({
-                    container: 'map',
-                        style: 'mapbox://styles/mapbox/streets-v10',
-                        center: [lng, lat],
-                        zoom: zoom
-                    });
-                    map.addControl(new MapboxGeocoder({
-                        accessToken: mapboxgl.accessToken,
-                        mapboxgl: mapboxgl,
-                        collapsed: true
-                    }));
-                    map.addControl(new MapboxLanguage({
-                        defaultLanguage: 'ja'
-                    }));
-                    var nav = new mapboxgl.NavigationControl();
-                    map.addControl(nav, 'top-left');
-                    var marker = null;
-    
-                    if (lng != "{!mpOpportunity__c.OgglongitudeInput__c}" || lat != "{!mpOpportunity__c.OgglatitudeInput__c}") {
+                var initialLng, initialLat;
+                
+                if (storedLng && storedLat && storedLng !== '' && storedLat !== '' && 
+                    lng === storedLng && lat === storedLat) {
+                    initialLng = parseFloat(storedLng);
+                    initialLat = parseFloat(storedLat);
+                } else if (lng !== "0" && lat !== "0") {
+                    initialLng = parseFloat(lng);
+                    initialLat = parseFloat(lat);
+                    if (lng !== storedLng || lat !== storedLat) {
                         $("input[id$='ylatitude']").val('');
                         $("input[id$='ylongitude']").val('');
-                    } else {
-                        marker = new mapboxgl.Marker()
-                            .setLngLat([lng, lat])
-                            .addTo(map);
-                    }
-                
-                    map.on('click', function(e) {
-                        console.log('A click event has occurred at ' + e.lngLat);
-                        //マーカーを削除
-                        if(marker != null) {
-                            marker.remove();
-                        }
-                        //マーカーを追加
-                        marker = new mapboxgl.Marker()
-                            .setLngLat(e.lngLat)
-                            .addTo(map);
-                        // フォームに緯度・経度を設定
-                        $("input[id$='ylongitude']").val(e.lngLat.lng);
-                        $("input[id$='ylatitude']").val(e.lngLat.lat);
-                    });
-                };
-                
-                if (lng == "0" && lat == "0") {
-                    if (navigator.geolocation) {
-                        //Geolocation APIに対応している場合、現在地を取得して緯度経度が設定された地図を表示
-                        // 現在地を取得
-                        navigator.geolocation.getCurrentPosition(
-                            //取得成功した場合
-                            function(position) {
-                                //現在地を設定して地図を表示
-                                lng = position.coords.longitude;
-                                lat = position.coords.latitude;
-                                showMap();
-                            },
-                            //取得失敗した場合
-                            function(error) {
-                                console.log(error);
-                                // 東京駅
-                                lng = 139.767009;
-                                lat = 35.680840;
-                                zoom = 13;
-                                showMap();
-                            },
-                            { timeout: 3500 } // 3秒でタイムアウトさせる
-                        );
-                    } else {
-                        // 東京駅
-                        lng = 139.767009;
-                        lat = 35.680840;
-                        zoom = 13;
-                        showMap();
                     }
                 } else {
-                    showMap();
+                    initialLng = null;
+                    initialLat = null;
                 }
 
+                window.addEventListener('message', function(event) {
+                    if (event.origin !== window.location.origin) {
+                        return;
+                    }
+                    
+                    if (event.data && event.data.type === 'mapLocationChange') {
+                        var latitude = event.data.latitude;
+                        var longitude = event.data.longitude;
+                        
+                        if (latitude !== undefined && longitude !== undefined) {
+                            var latInput = $("input[id$='ylatitude']");
+                            var lngInput = $("input[id$='ylongitude']");
+                            
+                            if (latInput.length && lngInput.length) {
+                                latInput.val(latitude);
+                                lngInput.val(longitude);
+                                
+                                // Trigger change event
+                                latInput.trigger('change');
+                                lngInput.trigger('change');
+                            }
+                        }
+                    }
+                });
+                
+                // Initialize Leaflet Map component
+                $Lightning.use("c:mpMapPickerApp", function() {
+                    $Lightning.createComponent("c:mpMapPickerWrapper",
+                        {
+                            "latitude": initialLat,
+                            "longitude": initialLng,
+                            "readonly": false
+                        },
+                        "leafletMapContainer",
+                        function(cmp) {
+                            console.log("Map component loaded in edit mode");
+                        }
+                    );
+                });
+                
                 // ページ読み込み時に初期状態を設定
                 updateMapMessages();
                 // セレクトボックス変更時にメッセージを更新
@@ -502,11 +477,6 @@
                 display:none;
             }
 
-            #map input[type=text].mapboxgl-ctrl-geocoder--input{
-                padding:6px 35px;
-                min-width:0px;
-                border:none;
-            }
             #map li{
                 margin: 0
             }
@@ -732,7 +702,7 @@
                                                 加盟店管理情報として緯度経度情報が必要なため地図をタップして店舗の位置にピンを立ててください<br />
                                                 ※「地図掲載しない」を選択した場合でも緯度経度情報が必要となります
                                             </div>
-                                            <div id="map" style="width:700px; height:480px; max-width:100%;"></div>
+                                            <div id="leafletMapContainer" style="width:700px; max-width:100%;"></div>
                                             <div id="errorMap" class="errorMsg" style="display: none;">
                                                 <strong>エラー:</strong>
                                                 &nbsp;地図にピンを立ててください

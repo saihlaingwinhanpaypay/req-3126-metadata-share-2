@@ -1,105 +1,73 @@
 <apex:component allowDML="true">
 <apex:attribute name="mpOpportunity__c" description="mpOpportunity__c" type="mpOpportunity__c" required="true"/>
 <apex:attribute name="mpInstantSetup" description="mpInstantSetup" type="mpInstantSetup" required="true"/>
-<style>
-#map input[type=text].mapboxgl-ctrl-geocoder--input{
-    padding:6px 35px;
-}
-#map li{
-    margin: 0
-}
-</style>
-<script src='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.js'></script>
-<link href='https://api.mapbox.com/mapbox-gl-js/v2.0.0/mapbox-gl.css' rel='stylesheet' />
-<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.5.1/mapbox-gl-geocoder.min.js"></script>
-<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.5.1/mapbox-gl-geocoder.css" type="text/css"/>
-<script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-language/v0.10.1/mapbox-gl-language.js'></script>
-<!-- Promise polyfill script required to use Mapbox GL Geocoder in IE 11 -->
-<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js"></script>
+
+<!-- Lightning Out for Leaflet Map Component -->
+<apex:includeLightning />
 <script>
 $(function(){
     var lng = "{! mpInstantSetup.mpLngLatDefault[0]}";
     var lat = "{! mpInstantSetup.mpLngLatDefault[1]}";
-    var zoom = 17;
+    var storedLng = "{!mpOpportunity__c.OgglongitudeInput__c}";
+    var storedLat = "{!mpOpportunity__c.OgglatitudeInput__c}";
 
-    var showMap = function() {
-        mapboxgl.accessToken = 'pk.eyJ1IjoicGF5cGF5IiwiYSI6ImNrN2N6M2IyczFqenozZm51ZnpkYTdkeDMifQ.4_5A29W-U_Pm8WuBoDGaqw';
-        var map = new mapboxgl.Map({
-        container: 'map',
-            style: 'mapbox://styles/mapbox/streets-v10',
-            center: [lng, lat],
-            zoom: zoom
-        });
-        map.addControl(new MapboxGeocoder({
-            accessToken: mapboxgl.accessToken,
-            mapboxgl: mapboxgl,
-            collapsed: true
-        }));
-        map.addControl(new MapboxLanguage({
-            defaultLanguage: 'ja'
-        }));
-        var nav = new mapboxgl.NavigationControl();
-        map.addControl(nav, 'top-left');
-        var marker = null;
-        if (lng != "{!mpOpportunity__c.OgglongitudeInput__c}" || lat != "{!mpOpportunity__c.OgglatitudeInput__c}") {
+    var initialLng, initialLat;
+    
+    if (storedLng && storedLat && storedLng !== '' && storedLat !== '' && 
+        lng === storedLng && lat === storedLat) {
+        initialLng = parseFloat(storedLng);
+        initialLat = parseFloat(storedLat);
+    } else if (lng !== "0" && lat !== "0") {
+        // Use default coordinates if not 0,0
+        initialLng = parseFloat(lng);
+        initialLat = parseFloat(lat);
+        if (lng !== storedLng || lat !== storedLat) {
             $("input[id$='ylatitude']").val('');
             $("input[id$='ylongitude']").val('');
-        } else {
-            marker = new mapboxgl.Marker()
-                .setLngLat([lng, lat])
-                .addTo(map);
-        }
-    
-        map.on('click', function(e) {
-            console.log('A click event has occurred at ' + e.lngLat);
-            //マーカーを削除
-            if(marker != null) {
-                marker.remove();
-            }
-            //マーカーを追加
-            marker = new mapboxgl.Marker()
-                .setLngLat(e.lngLat)
-                .addTo(map);
-            // フォームに緯度・経度を設定
-            $("input[id$='ylongitude']").val(e.lngLat.lng);
-            $("input[id$='ylatitude']").val(e.lngLat.lat);
-        });
-    }
-
-    if (lng == "0" && lat == "0") {
-        if (navigator.geolocation) {
-            //Geolocation APIに対応している場合、現在地を取得して緯度経度が設定された地図を表示
-            // 現在地を取得
-            navigator.geolocation.getCurrentPosition(
-                //取得成功した場合
-                function(position) {
-                    //現在地を設定して地図を表示
-                    lng = position.coords.longitude;
-                    lat = position.coords.latitude;
-                    showMap();
-                },
-                //取得失敗した場合
-                function(error) {
-                    console.log(error);
-                    // 東京駅
-                    lng = 139.767009;
-                    lat = 35.680840;
-                    zoom = 13;
-                    showMap();
-                },
-                { timeout: 3500 } // 3秒でタイムアウトさせる
-            );
-        } else {
-            // 東京駅
-            lng = 139.767009;
-            lat = 35.680840;
-            zoom = 13;
-            showMap();
         }
     } else {
-        showMap();
+        initialLng = null;
+        initialLat = null;
     }
+
+    window.addEventListener('message', function(event) {
+        if (event.origin !== window.location.origin) {
+            return;
+        }
+        
+        if (event.data && event.data.type === 'mapLocationChange') {
+            var latitude = event.data.latitude;
+            var longitude = event.data.longitude;
+            
+            if (latitude !== undefined && longitude !== undefined) {
+                var latInput = $("input[id$='ylatitude']");
+                var lngInput = $("input[id$='ylongitude']");
+                
+                if (latInput.length && lngInput.length) {
+                    latInput.val(latitude);
+                    lngInput.val(longitude);
+                    
+                    latInput.trigger('change');
+                    lngInput.trigger('change');
+                }
+            }
+        }
+    });
+    
+    $Lightning.use("c:mpMapPickerApp", function() {
+        $Lightning.createComponent("c:mpMapPickerWrapper",
+            {
+                "latitude": initialLat,
+                "longitude": initialLng,
+                "readonly": false
+            },
+            "leafletMapContainer",
+            function(cmp) {
+                console.log("Map component loaded in edit mode");
+            }
+        );
+    });
+    
     // ページ読み込み時に初期状態を設定
     updateMapMessages();
     // セレクトボックス変更時にメッセージを更新
@@ -188,7 +156,7 @@ function updateMapMessages() {
                                         <p style="margin: 0;">加盟店管理情報と​して​緯度経度情報が​必要な​ため地図を​タップして​店舗の​位置に​ピンを​立ててください​</p>
                                         <p>※地図掲載しないを​選択した​場合でも​緯度経度情報が​必要と​なります</p>
                                     </div>
-                                    <div id='map' style='width:100%; height:480px; max-width:100%;'></div>
+                                    <div id="leafletMapContainer" style="width:100%; max-width:100%;"></div>
                                     <p>
                                         緯度<span style="margin-left: 1em;"></span><apex:InputText value="{! mpOpportunity__c.OgglatitudeInput__c}" html-placeholder="" id="ylatitude" html-readonly="true"/>
                                     </p>
