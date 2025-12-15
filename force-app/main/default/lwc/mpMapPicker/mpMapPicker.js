@@ -237,31 +237,68 @@ export default class MpMapPicker extends LightningElement {
 
     parseJapaneseAddress(address) {
         const normalized = this.normalizeJapaneseAddress(address);
-        const parts = [];
+        const result = {
+            prefecture: '',
+            city: '',
+            town: '',
+            chome: '',
+            banchi: '',
+            go: '',
+            building: ''
+        };
+        
         let remaining = normalized;
         
-        const patterns = [
-            { regex: /^(.+?[都道府県])/, name: '都道府県' },
-            { regex: /^(.+?[市区町村])/, name: '市区町村' },
-            { regex: /^(.+?[町村])/, name: '町村' },
-            { regex: /^(.+?[丁目丁])/, name: '丁目' },
-            { regex: /^(.+?[番地番])/, name: '番地' },
-            { regex: /^(.+?[号])/, name: '号' }
-        ];
+        const prefectureMatch = remaining.match(/^(.+?[都道府県])/);
+        if (prefectureMatch) {
+            result.prefecture = prefectureMatch[1];
+            remaining = remaining.substring(prefectureMatch[1].length);
+        }
         
-        for (const pattern of patterns) {
-            const match = remaining.match(pattern.regex);
-            if (match) {
-                parts.push(match[1]);
-                remaining = remaining.substring(match[1].length);
+        const cityMatch = remaining.match(/^(.+?[市区町村])/);
+        if (cityMatch) {
+            result.city = cityMatch[1];
+            remaining = remaining.substring(cityMatch[1].length);
+        }
+        
+        const townMatch = remaining.match(/^(.+?[町村](?![都道府県市区]))/);
+        if (townMatch) {
+            result.town = townMatch[1];
+            remaining = remaining.substring(townMatch[1].length);
+        } else {
+            const altTownMatch = remaining.match(/^([^0-9]+?)(?=[0-9])/);
+            if (altTownMatch && altTownMatch[1].length > 0) {
+                result.town = altTownMatch[1];
+                remaining = remaining.substring(altTownMatch[1].length);
             }
         }
         
-        if (remaining.length > 0) {
-            parts.push(remaining);
+        const chomeMatch = remaining.match(/^(\d+[丁目丁]|\d+[-−])/);
+        if (chomeMatch) {
+            result.chome = chomeMatch[1];
+            remaining = remaining.substring(chomeMatch[1].length);
         }
         
-        return parts.length > 0 ? parts : [normalized];
+        const streetNumberMatch = remaining.match(/^(\d+[-−]\d+[-−]\d+|\d+[-−]\d+|\d+)/);
+        if (streetNumberMatch) {
+            const nums = streetNumberMatch[1].split(/[-−]/);
+            if (nums.length === 3) {
+                result.banchi = nums[0] + '-' + nums[1];
+                result.go = nums[2];
+            } else if (nums.length === 2) {
+                result.banchi = nums[0];
+                result.go = nums[1];
+            } else {
+                result.banchi = nums[0];
+            }
+            remaining = remaining.substring(streetNumberMatch[1].length);
+        }
+        
+        if (remaining.length > 0) {
+            result.building = remaining;
+        }
+        
+        return result;
     }
 
     async searchAddress(query, limit = 3) {
@@ -313,18 +350,56 @@ export default class MpMapPicker extends LightningElement {
             
             const normalizedQuery = this.normalizeJapaneseAddress(this.searchQuery);
             let location = await this.searchAddress(normalizedQuery);
+            let matchedLevel = 'full';
             
             if (!location) {
-                const addressParts = this.parseJapaneseAddress(this.searchQuery);
+                const parsed = this.parseJapaneseAddress(this.searchQuery);
                 
-                for (let i = addressParts.length - 1; i > 0 && !location; i--) {
+                const searchAttempts = [
+                    {
+                        query: parsed.prefecture + parsed.city + parsed.town + parsed.chome + parsed.banchi + (parsed.go ? '-' + parsed.go : ''),
+                        level: 'street_with_go',
+                        zoom: 19
+                    },
+                    {
+                        query: parsed.prefecture + parsed.city + parsed.town + parsed.chome + parsed.banchi,
+                        level: 'street_with_banchi',
+                        zoom: 18
+                    },
+                    {
+                        query: parsed.prefecture + parsed.city + parsed.town + parsed.chome,
+                        level: 'chome',
+                        zoom: 17
+                    },
+                    {
+                        query: parsed.prefecture + parsed.city + parsed.town,
+                        level: 'town',
+                        zoom: 16
+                    },
+                    {
+                        query: parsed.prefecture + parsed.city,
+                        level: 'city',
+                        zoom: 14
+                    },
+                    {
+                        query: parsed.prefecture,
+                        level: 'prefecture',
+                        zoom: 12
+                    }
+                ];
+                
+                for (const attempt of searchAttempts) {
+                    if (!attempt.query || attempt.query === normalizedQuery) {
+                        continue;
+                    }
+                    
                     await new Promise(resolve => setTimeout(resolve, 1000));
                     
-                    const partialAddress = addressParts.slice(0, i).join('');
-                    location = await this.searchAddress(partialAddress);
+                    location = await this.searchAddress(attempt.query);
                     
                     if (location) {
-                        console.log(`Found location using partial address: ${partialAddress}`);
+                        console.log(`Found location at ${attempt.level}: ${attempt.query}`);
+                        matchedLevel = attempt.level;
                         break;
                     }
                 }
@@ -336,14 +411,19 @@ export default class MpMapPicker extends LightningElement {
                 
                 this.updateLocation(lat, lon);
                 
-                const addressParts = this.parseJapaneseAddress(this.searchQuery);
+                const parsed = this.parseJapaneseAddress(this.searchQuery);
                 let zoom = 15;
-                if (addressParts.length >= 6) {
+                
+                if (parsed.go) {
                     zoom = 19;
-                } else if (addressParts.length >= 4) {
+                } else if (parsed.banchi) {
                     zoom = 18;
-                } else if (addressParts.length >= 2) {
+                } else if (parsed.chome) {
+                    zoom = 17;
+                } else if (parsed.town) {
                     zoom = 16;
+                } else if (parsed.city) {
+                    zoom = 14;
                 }
                 
                 this.map.setView([lat, lon], zoom);
