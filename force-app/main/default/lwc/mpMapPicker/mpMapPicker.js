@@ -226,6 +226,68 @@ export default class MpMapPicker extends LightningElement {
         this.searchError = '';
     }
 
+    normalizeJapaneseAddress(address) {
+        return address
+            .replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+            .replace(/[Ａ-Ｚａ-ｚ]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
+            .replace(/\s+/g, '')
+            .replace(/[−ー‐]/g, '-')
+            .replace(/[、・]/g, '');
+    }
+
+    parseJapaneseAddress(address) {
+        const normalized = this.normalizeJapaneseAddress(address);
+        const parts = [];
+        let remaining = normalized;
+        
+        const patterns = [
+            { regex: /^(.+?[都道府県])/, name: '都道府県' },
+            { regex: /^(.+?[市区町村])/, name: '市区町村' },
+            { regex: /^(.+?[町村])/, name: '町村' },
+            { regex: /^(.+?[丁目丁])/, name: '丁目' },
+            { regex: /^(.+?[番地番])/, name: '番地' },
+            { regex: /^(.+?[号])/, name: '号' }
+        ];
+        
+        for (const pattern of patterns) {
+            const match = remaining.match(pattern.regex);
+            if (match) {
+                parts.push(match[1]);
+                remaining = remaining.substring(match[1].length);
+            }
+        }
+        
+        if (remaining.length > 0) {
+            parts.push(remaining);
+        }
+        
+        return parts.length > 0 ? parts : [normalized];
+    }
+
+    async searchAddress(query, limit = 3) {
+        try {
+            const response = await fetch(
+                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=${limit}&countrycodes=jp`,
+                {
+                    headers: {
+                        'User-Agent': 'mpMapPicker/1.0',
+                        'Accept-Language': 'ja'
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                return null;
+            }
+
+            const data = await response.json();
+            return (data && data.length > 0) ? data[0] : null;
+        } catch (error) {
+            console.error('Search error:', error);
+            return null;
+        }
+    }
+
     async handleSearch() {
         if (!this.searchQuery.trim()) {
             this.searchError = '検索する住所を入力してください。';
@@ -248,29 +310,42 @@ export default class MpMapPicker extends LightningElement {
         try {
             // Nominatim Usage Policy: https://operations.osmfoundation.org/policies/nominatim/
             // - Limited to 1 request per second　1秒に1回のリクエストを強制
-            const response = await fetch(
-                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(this.searchQuery)}&limit=1&countrycodes=jp`,
-                {
-                    headers: {
-                        'User-Agent': 'mpMapPicker/1.0',
-                        'Accept-Language': 'ja'
+            
+            const normalizedQuery = this.normalizeJapaneseAddress(this.searchQuery);
+            let location = await this.searchAddress(normalizedQuery);
+            
+            if (!location) {
+                const addressParts = this.parseJapaneseAddress(this.searchQuery);
+                
+                for (let i = addressParts.length - 1; i > 0 && !location; i--) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const partialAddress = addressParts.slice(0, i).join('');
+                    location = await this.searchAddress(partialAddress);
+                    
+                    if (location) {
+                        console.log(`Found location using partial address: ${partialAddress}`);
+                        break;
                     }
                 }
-            );
-
-            if (!response.ok) {
-                throw new Error('検索に失敗しました。');
             }
 
-            const data = await response.json();
-
-            if (data && data.length > 0) {
-                const location = data[0];
+            if (location) {
                 const lat = parseFloat(location.lat);
                 const lon = parseFloat(location.lon);
                 
                 this.updateLocation(lat, lon);
-                const zoom = this.map.getMaxZoom ? this.map.getMaxZoom() : 19;
+                
+                const addressParts = this.parseJapaneseAddress(this.searchQuery);
+                let zoom = 15;
+                if (addressParts.length >= 6) {
+                    zoom = 19;
+                } else if (addressParts.length >= 4) {
+                    zoom = 18;
+                } else if (addressParts.length >= 2) {
+                    zoom = 16;
+                }
+                
                 this.map.setView([lat, lon], zoom);
             } else {
                 this.searchError = '住所が見つかりませんでした。';
