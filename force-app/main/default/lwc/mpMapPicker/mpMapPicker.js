@@ -252,7 +252,8 @@ export default class MpMapPicker extends LightningElement {
                 `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(this.searchQuery)}&limit=1&countrycodes=jp`,
                 {
                     headers: {
-                        'User-Agent': 'mpMapPicker/1.0'
+                        'User-Agent': 'mpMapPicker/1.0',
+                        'Accept-Language': 'ja'
                     }
                 }
             );
@@ -265,8 +266,8 @@ export default class MpMapPicker extends LightningElement {
 
             if (data && data.length > 0) {
                 const location = data[0];
-                const lat = parseFloat(parseFloat(location.lat).toFixed(14));
-                const lon = parseFloat(parseFloat(location.lon).toFixed(14));
+                const lat = parseFloat(location.lat);
+                const lon = parseFloat(location.lon);
                 
                 this.updateLocation(lat, lon);
                 const zoom = this.map.getMaxZoom ? this.map.getMaxZoom() : 19;
