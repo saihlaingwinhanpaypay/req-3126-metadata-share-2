@@ -266,6 +266,16 @@ export default class MpMapPicker extends LightningElement {
 
     async searchAddress(query, limit = 3) {
         try {
+            const now = Date.now();
+            const timeSinceLastRequest = now - this.lastSearchTime;
+            
+            if (timeSinceLastRequest < 1000) {
+                const waitTime = 1000 - timeSinceLastRequest;
+                await new Promise(resolve => setTimeout(resolve, waitTime));
+            }
+            
+            this.lastSearchTime = Date.now();
+            
             const response = await fetch(
                 `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=${limit}&countrycodes=jp`,
                 {
@@ -329,7 +339,7 @@ export default class MpMapPicker extends LightningElement {
                     zoom: 18
                 });
                 searchAttempts.push({
-                    query: baseAddress + numbers[0],
+                    query: baseAddress + numbers[0] + '丁目',
                     level: 'one_number',
                     zoom: 17
                 });
@@ -340,13 +350,13 @@ export default class MpMapPicker extends LightningElement {
                     zoom: 18
                 });
                 searchAttempts.push({
-                    query: baseAddress + numbers[0],
+                    query: baseAddress + numbers[0] + '丁目',
                     level: 'one_number',
                     zoom: 17
                 });
             } else if (numbers.length === 1) {
                 searchAttempts.push({
-                    query: baseAddress + numbers[0],
+                    query: baseAddress + numbers[0] + '丁目',
                     level: 'one_number',
                     zoom: 17
                 });
@@ -360,10 +370,6 @@ export default class MpMapPicker extends LightningElement {
             
             for (let i = 0; i < searchAttempts.length; i++) {
                 const attempt = searchAttempts[i];
-                
-                if (i > 0) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                }
                 
                 location = await this.searchAddress(attempt.query);
                 
