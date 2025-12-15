@@ -235,70 +235,33 @@ export default class MpMapPicker extends LightningElement {
             .replace(/[、・]/g, '');
     }
 
-    parseJapaneseAddress(address) {
+    formatAddressToNumericPattern(address) {
         const normalized = this.normalizeJapaneseAddress(address);
-        const result = {
-            prefecture: '',
-            city: '',
-            town: '',
-            chome: '',
-            banchi: '',
-            go: '',
-            building: ''
-        };
         
-        let remaining = normalized;
-        
-        const prefectureMatch = remaining.match(/^(.+?[都道府県])/);
-        if (prefectureMatch) {
-            result.prefecture = prefectureMatch[1];
-            remaining = remaining.substring(prefectureMatch[1].length);
+        const baseMatch = normalized.match(/^(.+?)(?=[0-9])/);
+        if (!baseMatch) {
+            return { baseAddress: normalized, numbers: [] };
         }
         
-        const cityMatch = remaining.match(/^(.+?[市区町村])/);
-        if (cityMatch) {
-            result.city = cityMatch[1];
-            remaining = remaining.substring(cityMatch[1].length);
+        const baseAddress = baseMatch[1];
+        let remaining = normalized.substring(baseAddress.length);
+        
+        remaining = remaining
+            .replace(/[丁目]/g, '-')
+            .replace(/[番地番]/g, '-')
+            .replace(/[号]/g, '-')
+            .replace(/[-−]+/g, '-');
+        
+        const lastNumberMatch = remaining.match(/(\d+)(?!.*\d)/);
+        if (lastNumberMatch) {
+            const lastNumberIndex = remaining.lastIndexOf(lastNumberMatch[1]);
+            remaining = remaining.substring(0, lastNumberIndex + lastNumberMatch[1].length);
         }
         
-        const townMatch = remaining.match(/^(.+?[町村](?![都道府県市区]))/);
-        if (townMatch) {
-            result.town = townMatch[1];
-            remaining = remaining.substring(townMatch[1].length);
-        } else {
-            const altTownMatch = remaining.match(/^([^0-9]+?)(?=[0-9])/);
-            if (altTownMatch && altTownMatch[1].length > 0) {
-                result.town = altTownMatch[1];
-                remaining = remaining.substring(altTownMatch[1].length);
-            }
-        }
+        const numberMatches = remaining.match(/\d+/g);
+        const numbers = numberMatches ? numberMatches : [];
         
-        const chomeMatch = remaining.match(/^(\d+[丁目丁]|\d+[-−])/);
-        if (chomeMatch) {
-            result.chome = chomeMatch[1];
-            remaining = remaining.substring(chomeMatch[1].length);
-        }
-        
-        const streetNumberMatch = remaining.match(/^(\d+[-−]\d+[-−]\d+|\d+[-−]\d+|\d+)/);
-        if (streetNumberMatch) {
-            const nums = streetNumberMatch[1].split(/[-−]/);
-            if (nums.length === 3) {
-                result.banchi = nums[0] + '-' + nums[1];
-                result.go = nums[2];
-            } else if (nums.length === 2) {
-                result.banchi = nums[0];
-                result.go = nums[1];
-            } else {
-                result.banchi = nums[0];
-            }
-            remaining = remaining.substring(streetNumberMatch[1].length);
-        }
-        
-        if (remaining.length > 0) {
-            result.building = remaining;
-        }
-        
-        return result;
+        return { baseAddress, numbers };
     }
 
     async searchAddress(query, limit = 3) {
@@ -348,86 +311,75 @@ export default class MpMapPicker extends LightningElement {
             // Nominatim Usage Policy: https://operations.osmfoundation.org/policies/nominatim/
             // - Limited to 1 request per second　1秒に1回のリクエストを強制
             
-            const normalizedQuery = this.normalizeJapaneseAddress(this.searchQuery);
-            let location = await this.searchAddress(normalizedQuery);
-            let matchedLevel = 'full';
+            const formatted = this.formatAddressToNumericPattern(this.searchQuery);
+            const { baseAddress, numbers } = formatted;
             
-            if (!location) {
-                const parsed = this.parseJapaneseAddress(this.searchQuery);
+            let location = null;
+            const searchAttempts = [];
+            
+            if (numbers.length >= 3) {
+                searchAttempts.push({
+                    query: baseAddress + numbers[0] + '-' + numbers[1] + '-' + numbers[2],
+                    level: 'full_numeric',
+                    zoom: 19
+                });
+                searchAttempts.push({
+                    query: baseAddress + numbers[0] + '-' + numbers[1],
+                    level: 'two_numbers',
+                    zoom: 18
+                });
+                searchAttempts.push({
+                    query: baseAddress + numbers[0],
+                    level: 'one_number',
+                    zoom: 17
+                });
+            } else if (numbers.length === 2) {
+                searchAttempts.push({
+                    query: baseAddress + numbers[0] + '-' + numbers[1],
+                    level: 'two_numbers',
+                    zoom: 18
+                });
+                searchAttempts.push({
+                    query: baseAddress + numbers[0],
+                    level: 'one_number',
+                    zoom: 17
+                });
+            } else if (numbers.length === 1) {
+                searchAttempts.push({
+                    query: baseAddress + numbers[0],
+                    level: 'one_number',
+                    zoom: 17
+                });
+            }
+            
+            searchAttempts.push({
+                query: baseAddress,
+                level: 'base_address',
+                zoom: 16
+            });
+            
+            for (let i = 0; i < searchAttempts.length; i++) {
+                const attempt = searchAttempts[i];
                 
-                const searchAttempts = [
-                    {
-                        query: parsed.prefecture + parsed.city + parsed.town + parsed.chome + parsed.banchi + (parsed.go ? '-' + parsed.go : ''),
-                        level: 'street_with_go',
-                        zoom: 19
-                    },
-                    {
-                        query: parsed.prefecture + parsed.city + parsed.town + parsed.chome + parsed.banchi,
-                        level: 'street_with_banchi',
-                        zoom: 18
-                    },
-                    {
-                        query: parsed.prefecture + parsed.city + parsed.town + parsed.chome,
-                        level: 'chome',
-                        zoom: 17
-                    },
-                    {
-                        query: parsed.prefecture + parsed.city + parsed.town,
-                        level: 'town',
-                        zoom: 16
-                    },
-                    {
-                        query: parsed.prefecture + parsed.city,
-                        level: 'city',
-                        zoom: 14
-                    },
-                    {
-                        query: parsed.prefecture,
-                        level: 'prefecture',
-                        zoom: 12
-                    }
-                ];
-                
-                for (const attempt of searchAttempts) {
-                    if (!attempt.query || attempt.query === normalizedQuery) {
-                        continue;
-                    }
-                    
+                if (i > 0) {
                     await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+                
+                location = await this.searchAddress(attempt.query);
+                
+                if (location) {
+                    console.log(`Found location at ${attempt.level}: ${attempt.query}`);
                     
-                    location = await this.searchAddress(attempt.query);
+                    const lat = parseFloat(location.lat);
+                    const lon = parseFloat(location.lon);
                     
-                    if (location) {
-                        console.log(`Found location at ${attempt.level}: ${attempt.query}`);
-                        matchedLevel = attempt.level;
-                        break;
-                    }
+                    this.updateLocation(lat, lon);
+                    this.map.setView([lat, lon], attempt.zoom);
+                    break;
                 }
             }
 
-            if (location) {
-                const lat = parseFloat(location.lat);
-                const lon = parseFloat(location.lon);
-                
-                this.updateLocation(lat, lon);
-                
-                const parsed = this.parseJapaneseAddress(this.searchQuery);
-                let zoom = 15;
-                
-                if (parsed.go) {
-                    zoom = 19;
-                } else if (parsed.banchi) {
-                    zoom = 18;
-                } else if (parsed.chome) {
-                    zoom = 17;
-                } else if (parsed.town) {
-                    zoom = 16;
-                } else if (parsed.city) {
-                    zoom = 14;
-                }
-                
-                this.map.setView([lat, lon], zoom);
-            } else {
+            if (!location) {
                 this.searchError = '住所が見つかりませんでした。';
             }
         } catch (error) {
