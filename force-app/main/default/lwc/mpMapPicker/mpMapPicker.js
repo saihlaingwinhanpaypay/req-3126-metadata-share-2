@@ -381,6 +381,8 @@ export default class MpMapPicker extends LightningElement {
                     
                     this.updateLocation(lat, lon);
                     this.map.setView([lat, lon], attempt.zoom);
+                    
+                    this.searchQuery = attempt.query;
                     break;
                 }
             }
