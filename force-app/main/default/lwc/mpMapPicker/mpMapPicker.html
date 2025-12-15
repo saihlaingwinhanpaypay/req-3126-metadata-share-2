@@ -9,7 +9,7 @@
             <div class="search-container">
                 <lightning-input
                     type="search"
-                    label="住所検索"
+                    label="住所検索(入力)"
                     placeholder="住所を入力してください"
                     value={searchQuery}
                     onchange={handleSearchInput}>
@@ -23,6 +23,13 @@
                     class="search-button">
                 </lightning-button>
             </div>
+            <!-- Result Message -->
+            <template if:true={searchSuccess}>
+                <div class="slds-m-bottom_small">
+                    住所検索(結果)<br/>
+                    {searchQueryResult}
+                </div>
+            </template>
             
             <!-- Error Message -->
             <template if:true={searchError}>

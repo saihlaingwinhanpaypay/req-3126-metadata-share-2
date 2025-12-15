@@ -24,6 +24,8 @@ export default class MpMapPicker extends LightningElement {
     @api readonly = false;
     
     searchQuery = '';
+    searchQueryResult = '';
+    searchSuccess = '';
     searchError = '';
     isSearching = false;
     
@@ -382,7 +384,8 @@ export default class MpMapPicker extends LightningElement {
                     this.updateLocation(lat, lon);
                     this.map.setView([lat, lon], attempt.zoom);
                     
-                    this.searchQuery = attempt.query;
+                    this.searchQueryResult = attempt.query;
+                    this.searchSuccess = true;
                     break;
                 }
             }

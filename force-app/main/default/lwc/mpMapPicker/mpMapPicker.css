@@ -8,6 +8,10 @@
     font-size: 14px !important;
 }
 
+.slds-m-bottom_small {
+    font-size: 12px !important;
+}
+
 .search-container {
     display: flex;
     gap: 1rem;
