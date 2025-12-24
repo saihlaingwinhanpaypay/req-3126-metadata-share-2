@@ -129,7 +129,7 @@ export default class MpMapPicker extends LightningElement {
         
         let initialZoom;
         if (this.isFallbackLocation) {
-            initialZoom = 10;
+            initialZoom = 14;
         } else if (this.useCurrentLocation) {
             initialZoom = 16;
         } else {
