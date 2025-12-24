@@ -11,25 +11,27 @@ $(function(){
     var storedLng = "{!mpOpportunity__c.OgglongitudeInput__c}";
     var storedLat = "{!mpOpportunity__c.OgglatitudeInput__c}";
 
-    var initialLng, initialLat;
+    var initialLng, initialLat, initialShowMarker;
     
     if (storedLng && storedLat && storedLng !== '' && storedLat !== '' && 
         lng === storedLng && lat === storedLat) {
         initialLng = parseFloat(storedLng);
         initialLat = parseFloat(storedLat);
+        initialShowMarker = true;
     } else if (lng !== "0" && lat !== "0") {
+        initialLng = parseFloat(lng);
+        initialLat = parseFloat(lat);
         if (lng !== storedLng || lat !== storedLat) {
             $("input[id$='ylatitude']").val('');
             $("input[id$='ylongitude']").val('');
-            initialLng = null;
-            initialLat = null;
+            initialShowMarker = false;
         } else {
-            initialLng = parseFloat(lng);
-            initialLat = parseFloat(lat);
+            initialShowMarker = true;
         }
     } else {
         initialLng = null;
         initialLat = null;
+        initialShowMarker = false;
     }
 
     window.addEventListener('message', function(event) {
@@ -61,7 +63,8 @@ $(function(){
             {
                 "latitude": initialLat,
                 "longitude": initialLng,
-                "readonly": false
+                "readonly": false,
+                "showMarker": initialShowMarker
             },
             "leafletMapContainer",
             function(cmp) {

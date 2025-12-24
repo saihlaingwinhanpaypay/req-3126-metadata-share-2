@@ -22,6 +22,7 @@ export default class MpMapPicker extends LightningElement {
     @api latitude;
     @api longitude;
     @api readonly = false;
+    @api showMarker = true;
     
     searchQuery = '';
     searchQueryResult = '';
@@ -153,13 +154,13 @@ export default class MpMapPicker extends LightningElement {
             crossOrigin: true
         }).addTo(this.map);
 
-        // デフォルト位置でマーカーを作成（useCurrentLocationの場合は追加しない）
+        // デフォルト位置でマーカーを作成
         this.marker = L.marker([this.latitude, this.longitude], {
             draggable: !this.readonly
         });
         
-        // useCurrentLocationがfalseの場合のみマーカーを表示
-        if (!this.useCurrentLocation) {
+        // showMarkerパラメータに基づいてマーカーを表示
+        if (this.showMarker && !this.useCurrentLocation) {
             this.marker.addTo(this.map);
         }
 
