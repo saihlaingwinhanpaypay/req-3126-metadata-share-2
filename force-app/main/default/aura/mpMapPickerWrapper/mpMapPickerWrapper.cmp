@@ -15,5 +15,5 @@
                    latitude="{!v.latitude}" 
                    longitude="{!v.longitude}"
                    readonly="{!v.readonly}"
-                   show-marker="{!v.showMarker}"/>
+                   showMarker="{!v.showMarker}"/>
 </aura:component>

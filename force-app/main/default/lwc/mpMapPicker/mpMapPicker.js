@@ -22,7 +22,7 @@ export default class MpMapPicker extends LightningElement {
     @api latitude;
     @api longitude;
     @api readonly = false;
-    @api showMarker = true;
+    @api showMarker;
     
     searchQuery = '';
     searchQueryResult = '';
