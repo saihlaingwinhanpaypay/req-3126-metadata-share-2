@@ -18,12 +18,14 @@ $(function(){
         initialLng = parseFloat(storedLng);
         initialLat = parseFloat(storedLat);
     } else if (lng !== "0" && lat !== "0") {
-        // Use default coordinates if not 0,0
-        initialLng = parseFloat(lng);
-        initialLat = parseFloat(lat);
         if (lng !== storedLng || lat !== storedLat) {
             $("input[id$='ylatitude']").val('');
             $("input[id$='ylongitude']").val('');
+            initialLng = null;
+            initialLat = null;
+        } else {
+            initialLng = parseFloat(lng);
+            initialLat = parseFloat(lat);
         }
     } else {
         initialLng = null;

@@ -153,10 +153,15 @@ export default class MpMapPicker extends LightningElement {
             crossOrigin: true
         }).addTo(this.map);
 
-        // デフォルト位置でマーカーを追加
+        // デフォルト位置でマーカーを作成（useCurrentLocationの場合は追加しない）
         this.marker = L.marker([this.latitude, this.longitude], {
             draggable: !this.readonly
-        }).addTo(this.map);
+        });
+        
+        // useCurrentLocationがfalseの場合のみマーカーを表示
+        if (!this.useCurrentLocation) {
+            this.marker.addTo(this.map);
+        }
 
         if (!this.readonly) {
             this.map.on('click', (e) => {
