@@ -702,7 +702,7 @@
                                                 加盟店管理情報として緯度経度情報が必要なため地図をタップして店舗の位置にピンを立ててください<br />
                                                 ※「地図掲載しない」を選択した場合でも緯度経度情報が必要となります
                                             </div>
-                                            <div id="leafletMapContainer" style="width:700px; max-width:100%;"></div>
+                                            <div id="leafletMapContainer"></div>
                                             <div id="errorMap" class="errorMsg" style="display: none;">
                                                 <strong>エラー:</strong>
                                                 &nbsp;地図にピンを立ててください
