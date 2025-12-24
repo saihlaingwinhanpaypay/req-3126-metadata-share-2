@@ -35,6 +35,7 @@ export default class MpMapPicker extends LightningElement {
     mapInitialized = false;
     leafletInitialized = false;
     useCurrentLocation = false;
+    isFallbackLocation = false;
     lastSearchTime = 0; // レットリミットのための最終検索時間を追跡
     
     @wire(MessageContext)
@@ -91,6 +92,7 @@ export default class MpMapPicker extends LightningElement {
                     // エラーの場合は東京駅をデフォルトにする
                     this.latitude = 35.68084000000000;
                     this.longitude = 139.76700900000000;
+                    this.isFallbackLocation = true;
                     this.initializeMap();
                 },
                 { timeout: 5000, enableHighAccuracy: true }
@@ -99,6 +101,7 @@ export default class MpMapPicker extends LightningElement {
             // 東京駅fallback
             this.latitude = 35.68084000000000;
             this.longitude = 139.76700900000000;
+            this.isFallbackLocation = true;
             this.initializeMap();
         }
     }
@@ -123,7 +126,15 @@ export default class MpMapPicker extends LightningElement {
 
         const maxZoom = 19;
         const minZoom = 5;
-        const initialZoom = this.useCurrentLocation ? 16 : 18;
+        
+        let initialZoom;
+        if (this.isFallbackLocation) {
+            initialZoom = 10;
+        } else if (this.useCurrentLocation) {
+            initialZoom = 16;
+        } else {
+            initialZoom = 18;
+        }
         
         this.map = L.map(mapDiv, {
             center: [this.latitude, this.longitude],
